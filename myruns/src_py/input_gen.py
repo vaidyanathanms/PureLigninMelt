@@ -1,6 +1,6 @@
 # To run different initial conditions for polydisperse/monodisperse
 # lignin and lignin-solvent systems. 
-# Version: Mar-15-2021
+# Version: Apr-13-2021
 #------------------------------------------------------------------
 
 # Import modules
