@@ -31,12 +31,15 @@ plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 #------------------------------------------------------------------
 
 # Input data
-inp_type  = 'cosolvents' # melts, solvents, cosolvents
+inp_type  = 'melts' # melts, solvents, cosolvents
 disperse  = 'mono' # mono/poly; only for melts
-biom_arr  = ['WT','COMT','MYB']#,'COMT','MYB'] # biomass type arr
-otyp_arr  = ['EOH','GVL','THF']  # solvent arr for solvents/cosolvents
-otyp_leg  = ['EtOH','GVL','THF']  # legend for solvents/cosolvents
-run_arr   = [4,5,6] # number of independent runs for a given biomass
+biom_arr  = ['WT'] # biomass type arr
+otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
+otyp_leg  = ['None']  # legend for solvents/cosolvents
+run_arr   = [4] # number of independent runs for a given biomass
+temp_min  = 300 # Minimum temperature
+temp_max  = 501 # Maximum temperature
+temp_dt   = 20  # Temperature dt
 #------------------------------------------------------------------
 
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
@@ -48,18 +51,119 @@ hbonds  = 0 # hbonds of ALL-solv/water/total hbonds
 hb_bo4  = 0 # hbonds of bo4-solv/water/total hbonds
 hb_syr  = 0 # hbonds of syr-solv/water/total hbonds
 hb_gua  = 0 # hbonds of gua-solv/water/total hbonds
+tg_cal  = 0 # plot specific volume for tg
 #------------------------------------------------------------------
 
 # Directory paths
 main_dir = os.getcwd() # current dir
 scr_dir  = '/gpfs/alpine/bip189/scratch/vaidyams' # scratch dir
-scr_dir  = scr_dir + '/lignin'
+scr_dir  = scr_dir + '/Glassy_lignin'
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
     exit("Check scratch directory path")
 #------------------------------------------------------------------
 
-# Check basic directories and return head directory
+# Plot avg SASA for all solvents
+if tg_cal != 0:
+    print("Analyzing Tg data")
+
+    for bio_indx in range(len(biom_arr)): # loop in biomass
+
+        biomass = biom_arr[bio_indx]
+        if tg_cal == 2: # plot all averages together
+            res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
+                      'results'
+            if not os.path.isdir(res_dir):
+                os.mkdir(res_dir)
+
+            # Write data and then read to concatenate
+            tg_fyl = res_dir + '/tgdata.dat'
+            fc_tg = open(tg_fyl,'w')
+            fc_tg.write('%s\t%s\t%s\t%s\n' \
+                        %('Temp','#Runs','SV_Berend','SV_NPT'))
+
+
+        tg_avg = np.zeros(0)
+
+        # Define axes labels for distribution
+        fig1,ax1 = plt.subplots()
+        ax1.set_xlabel(r'Tempearture ($K$)')
+        ax1.set_ylabel(r'Specific Volume ($m^3$/$kg$')
+        plt.style.use('seaborn-colorblind')
+
+        for sol_indx in range(len(otyp_arr)): # loop in solvents
+            solv_type = otyp_arr[sol_indx]
+            solv_leg  = otyp_leg[sol_indx]
+            yall = np.zeros(0)
+            yavg = 0
+
+            for casenum in range(len(run_arr)): # loop in runarr
+                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
+                                                  disperse,run_arr[casenum],\
+                                                  'anafiles',solv_type)
+                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
+                # Check file
+                if os.path.exists(anadir + '/sasa.xvg'):
+                    fname  = anadir + '/sasa.xvg'
+                elif os.path.exists(wdir + '/sasa.xvg'):
+                    fname  = wdir + '/sasa.xvg'
+                else:
+                    print(fname, " does not exist! ")
+                    continue
+
+                # Open and parse file
+                with open(fname) as fin:
+                    lines = (line.lstrip() for line in fin \
+                             if not line.lstrip().startswith('#') and \
+                             not line.lstrip().startswith('@'))
+                    data  = np.loadtxt(lines)
+
+                yall = np.append(yall,data[:,1]) #append all y-data
+                yavg += np.average(data[:,1])
+
+            # append avg to yavg
+            ysasa_avg = np.append(ysasa_avg,yavg/len(run_arr))
+            # plot histogram across all cases
+            sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
+
+        # Save histogram plot
+        ax1.legend(loc=0)
+        fig1.savefig(fig_dir + '/'+biomass+'_SASAdist.png',dpi=fig1.dpi)
+        plt.close(fig1)
+
+        # Plot average
+        fig2,ax2 = plt.subplots()
+        ax2.set_ylabel(r'SASA (nm$^2$)')
+        plt.style.use('seaborn-colorblind')
+        sns.barplot(otyp_arr,np.array(ysasa_avg),ax=ax2)
+        plt.tight_layout()
+        change_width(ax2,0.5)
+        fig2.savefig(fig_dir + '/'+biomass+'_SASAavg.png',dpi=fig2.dpi)
+        plt.close(fig2)
+
+        if sasa == 2:
+            for indx in range(len(otyp_arr)): # loop in solvents
+                solv_type = otyp_arr[indx]
+                solv_leg  = otyp_leg[indx]
+                sasa_tot  = ysasa_avg[indx]
+                fc_ss.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
+                                             sasa_tot))
+    if sasa == 2:
+        fc_ss.close()
+        df=pd.read_table(sasa_fyl)
+        maxval = df['SASA'].max()
+        figa, axa = plt.subplots()
+        plt.style.use('seaborn-colorblind')
+        plt.tight_layout()
+        sns.barplot(x="Biomass",y="SASA",hue="Solvent",data=df,\
+                    ax=axa)
+        axa.set_ylabel(r'SASA (nm$^2$)')
+        axa.set_ylim([0,1.2*maxval])
+        axa.legend(loc=0,ncol = len(axa.lines))
+        change_width(axa,0.2)
+        figa.savefig(fig_dir + '/'+'AllSASA.png',dpi=figa.dpi)
+        plt.close(figa)
+#------------------------------------------------------------------
 
 # Plot avg SASA for all solvents
 if sasa != 0:
@@ -261,7 +365,7 @@ if rad_gyr != 0:
         plt.close(figa)
 #------------------------------------------------------------------
 
-# Plot RDF (bO4-solvent, bO4-water)
+# Plot RDF (pol-solvent, pol-water)
 if rdf_pol:
     
     print("Analyzing whole polymer RDF data")
@@ -302,7 +406,7 @@ if rdf_pol:
                 elif os.path.exists(wdir + '/rdfout1.xvg'):
                     fname  = wdir + '/rdfout1.xvg'
                 else:
-                    print(fname, " does not exist! ")
+                    print("rdfout1.xvg does not exist! ")
                     continue
 
                 # Open and parse file
@@ -348,6 +452,8 @@ if rdf_pol:
 
         ax1.legend(loc=0)
         ax2.legend(loc=0)
+        ax1.set_xlim([0,3.3])
+        ax2.set_xlim([0,3.3])
         fig1.savefig(fig_dir + '/'+biomass+'_rdfpsol.png',dpi=fig1.dpi)
         fig2.savefig(fig_dir + '/'+biomass+'_rdfpwat.png',dpi=fig2.dpi)
         plt.close(fig1)
@@ -510,7 +616,6 @@ if hbonds != 0:
                 else:
                     print("sol_hbnum does not exist!")
                     continue
-
 
                 for fname in fsol_list:
                     # Open and parse file
