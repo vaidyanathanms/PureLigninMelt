@@ -19,7 +19,11 @@ echo $PWD
 mkdir -p initdir
 
 # editconf box
+<<<<<<< HEAD
+jsrun -X 1 -n 1 -c 7 -a 1 -g 1 --launch_distribution plane:1 -b packed:7 gmx_mpi editconf -f py_meltconf -bt cubic -d py_dval -o py_boxmeltconf
+=======
 jsrun -X 1 -n 1 -c 7 -a 1 -g 1 --launch_distribution plane:1 -b packed:7 gmx_mpi editconf -f py_meltconf -bt cubic -d 1.0 -o py_boxmeltconf
+>>>>>>> origin/master
 wait
 
 # solvate with solvent - organic solvent

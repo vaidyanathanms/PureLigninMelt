@@ -59,7 +59,54 @@ def gencpy(dum_maindir,dum_destdir,fylname):
     shutil.copy2(srcfyl,desfyl)
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
+def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
+                 solv_type='None'):
+    # Check all directories
+    head_dir = scr_dir + '/' + inp_type
+    if not os.path.isdir(head_dir):
+        raise RuntimeError(head_dir + " does not exist!")
+
+       
+    poly_dir = head_dir + '/' + biomass
+    if not os.path.isdir(poly_dir):
+        raise RuntimeError(poly_dir + " does not exist!")
+        
+    if inp_type == 'melts':
+        fig_dir  = poly_dir + '/results_figs'
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+        poly_dir = poly_dir + '/pdi_' + str(dispval)
+        if not os.path.isdir(poly_dir):
+            raise RuntimeError(poly_dir + " does not exist!")
+
+    rundir = poly_dir + '/run_' + str(casenum)
+    if not os.path.isdir(rundir):
+        raise RuntimeError(rundir + " does not exist!")
+
+    if inp_type == 'solvents':
+        workdir1 = rundir + '/' + solv_type
+    elif inp_type == 'cosolvents':
+        h_workdir = rundir + '/' + solv_type
+        workdir1 = h_workdir + '/' + solv_type + '_water'
+    else:
+        workdir1 = rundir #even for inp_type = melts
+
+    if not os.path.isdir(workdir1):
+        raise RuntimeError(workdir1, " does not exist!")
+
+    anadir = workdir1 + '/T_' + str(subdir)
+    if not os.path.isdir(workdir1):
+        raise RuntimeError(anadir, " does not exist!")
+
+    return workdir1, anadir, fig_dir
+#------------------------------------------------------------------        
+
+def ret_ana_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
+=======
 def ret_ana_dir(scr_dir,inp_type,biomass,disperse,casenum,subdir,\
+>>>>>>> origin/master
                  solv_type='None'):
     # Check all directories
     head_dir = scr_dir + '/' + inp_type
@@ -75,7 +122,11 @@ def ret_ana_dir(scr_dir,inp_type,biomass,disperse,casenum,subdir,\
         raise RuntimeError(poly_dir + " does not exist!")
         
     if inp_type == 'melts':
+<<<<<<< HEAD
+        poly_dir = poly_dir + '/pdi_' + str(dispval)
+=======
         poly_dir = poly_dir + '/' + disperse
+>>>>>>> origin/master
         if not os.path.isdir(poly_dir):
             raise RuntimeError(poly_dir + " does not exist!")
 

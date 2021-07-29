@@ -11,6 +11,7 @@ import shutil
 import glob
 import math
 import subprocess
+import datetime
 #------------------------------------------------------------------
 
 # General copy script
@@ -52,7 +53,7 @@ def check_inp_files(dum_inpdir,top_name):
     elif len(glob.glob(dum_inpdir+'/*.gro')) > 1:
         print('More than one config file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.gro')
-        conf_fname = max(fnames, key=os.path.getctime)
+        conf_fname = max(fnames, key=os.path.getmtime)
 
     # check topology files
     if glob.glob(dum_inpdir+'/*.top') == []:
@@ -68,7 +69,7 @@ def check_inp_files(dum_inpdir,top_name):
     else:
         print('More than one topology file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.top')
-        topol_fname = max(fnames, key=os.path.getctime)
+        topol_fname = max(fnames, key=os.path.getmtime)
     
     return conf_fname, topol_fname
 #------------------------------------------------------------------
@@ -77,23 +78,36 @@ def check_inp_files(dum_inpdir,top_name):
 # possible polymer.
 def count_nchains(destdir,inpname,inp_nchains):
 
-    if not os.path.exists(destdir + '/' + inpname):
+    if not os.path.exists(inpname):
         raise RuntimeError(inpname," not found in ",destdir)
     
+    print(inpname)
     ch_id   = 0 # chain ID to distinguish chain beginning
     refmon_num = -1 # dummy value
     mons_perchain_list = []; atoms_perchain_list = []
     fwrlist = open(destdir + '/chainlist.dat','w')
-    with open(destdir + '/' + inpname) as finp:
-        next(finp) # skip first line
+    fwrlist.write('%s\t%s\t%s\n' %('Chain_ID','Num_mons','Num_atoms'))
+    with open(inpname) as finp:
+        finp.readline() #skip first line
         tot_natoms = int(finp.readline()) # total num atoms
         for line in finp:
             line = line.rstrip('/n')
             if line.startswith('#'): #skip lines with #
                 continue
-            if not line: #skip empty lines
+            elif not line: #skip empty lines
                 continue
             words=line.split()
+
+            if len(words) == 3: #EOF
+                if ch_id == 0:
+                    raise RuntimeError('ERROR: Check gro file contents')
+                mons_perchain_list.append(mon_cnt)
+                atoms_perchain_list.append(atom_cnt)
+                fwrlist.write('%d\t%d\t%d\n' %(ch_id,mon_cnt\
+                                               ,atom_cnt))
+                ch_id += 1
+                continue
+
             mon_num = retrieve_id(words[0])
 
             if mon_num == refmon_num:
@@ -116,16 +130,17 @@ def count_nchains(destdir,inpname,inp_nchains):
 
 
     fwrlist.close()                
+
     # Sanity checks   
     if tot_natoms != sum(atoms_perchain_list):
         print('Total number of atoms do not match', tot_natoms, \
-              atoms_perchain_list)
+              sum(atoms_perchain_list))
         raise RuntimeError('Error in counting atoms. Please report!')
 
     num_chains = len(mons_perchain_list)
     if num_chains != inp_nchains:
-        print('ERR: num of chains in gro file does not match  with 
-        input number of chains', num_chains, inp_nchains) 
+        print('ERR: num of chains in gro file does not match with'
+              'input number of chains', num_chains, inp_nchains) 
         raise RuntimeError('Error - check input number of chains')
 
     return mons_perchain_list, atoms_perchain_list
@@ -134,21 +149,105 @@ def count_nchains(destdir,inpname,inp_nchains):
 # Retrieve ID
 def retrieve_id(inpstr):
 
-    match = re.match(r"([a-z]+)([0-9]+)", inpstr, re.I)
-    if match:
-        items = match.groups()
-
-    if items == [] or match == []:
+    match = re.findall(r'[A-Za-z]+|\d+', inpstr)
+    if match == []:
         print('Unknown atom ID: ', inpstr)
-        raise RunTimeError('Error - check gro file')
-    elif not match.isdigit(items[0]): 
+        raise RuntimeError('Error - check gro file')
+    elif not match[0].isdigit(): 
         print('Unknown atom ID: ', inpstr)
-        raise RunTimeError('Error - check gro file')
+        raise RuntimeError('Error - check gro file')
 
-    return int(items[0])
+    return int(match[0])
+#------------------------------------------------------------------  
+
+# Find trajector and tpr files
+def find_tpr_trr_files(dum_inpdir):
+    # check tpr files (*.tpr)
+    if glob.glob(dum_inpdir+'/*.tpr') == []:
+        print('ERR: No tpr files found in ', dum_inpdir)
+        return -1, -1
+    elif len(glob.glob(dum_inpdir+'/*.tpr')) == 1:
+        conf_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
+    elif len(glob.glob(dum_inpdir+'/*.tpr')) > 1:
+        print('More than one tpr file found. Using latest')
+        fnames = glob.glob(dum_inpdir+'/*.tpr')
+        tpr_fname = max(fnames, key=os.path.getmtime)
+
+    # check trr files (*.trr)
+    if glob.glob(dum_inpdir+'/*.trr') == []:
+        print('ERR: No trr files found in ', dum_inpdir)
+        return -1, -1
+    elif len(glob.glob(dum_inpdir+'/*.trr')) == 1:
+        conf_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
+    elif len(glob.glob(dum_inpdir+'/*.trr')) > 1:
+        print('More than one trr file found. Using latest')
+        fnames = glob.glob(dum_inpdir+'/*.trr')
+        trr_fname = max(fnames, key=os.path.getmtime)
+        
+    return tpr_fname, trr_fname
 #------------------------------------------------------------------    
-
 # Create index files for GROMACS
-def create_anaindx_grps(inpfile,monlist,atomlist):
+def create_anagrps_inp(destdir,monlist,atomlist,nchains):
 
+    fname = destdir + '/chaininp.inp'
+    frglist = open(fname,'w')
+    mon_init = 1
+    for ncnt in range(nchains):
+        mon_fin = mon_init + monlist[ncnt] - 1
+        if ncnt != nchains - 1:
+            frglist.write("%s %d %s %d;\n" %("resindex", mon_init,\
+                                              "to", mon_fin))
+        else:
+            frglist.write("%s %d %s %d\n" %("resindex", mon_init,\
+                                             "to", mon_fin))
 
+        mon_init = mon_fin + 1
+    
+    frglist.close()        
+#------------------------------------------------------------------    
+# Run analysis
+def run_analysis(nchains,rgflag,msdflag,rdfflag,headdir,destdir,\
+                 trajfile,tprfile,conffile,temp):
+
+    if rgflag:
+        fname = 'rgcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'rg')
+    if msdflag:
+        fname = 'msdcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'msd')
+    if rdfflag:
+        fname = 'rdfcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'rdf')
+#--------------------------------------------------------------------
+
+# Replace strings in job files
+def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
+
+    if not os.path.exists(headdir + '/' + fname):
+        raise RunTimeError(fname + ' not found in ' +headdir)
+
+    jobname  = anastr + '_T_' + str(temp)
+    trajfile = split_and_return_filename(trajfile)
+    tprfile  = split_and_return_filename(tprfile)
+    conffile = split_and_return_filename(conffile)
+    
+    gencpy(headdir,destdir,fname)
+    rev_fname = fname.replace('_pyinp','')
+    fr  = open(destdir + '/' + fname,'r')
+    fw  = open(destdir + '/' + rev_fname,'w')
+    fid = fr.read().replace("py_nchains",str(nchains)).\
+          replace("py_trajfile",trajfile).\
+          replace("py_tprfile",tprfile).\
+          replace("py_conffile",conffile).\
+          replace("py_jname",jobname)
+    fw.write(fid)
+    fw.close()
+    fr.close()
+#--------------------------------------------------------------------
+
+# Split and return last value from strings for finding files
+def split_and_return_filename(inp_fylename):
+
+    outstr = inp_fylename.split('/')
+    return outstr[len(outstr)-1]
+#--------------------------------------------------------------------

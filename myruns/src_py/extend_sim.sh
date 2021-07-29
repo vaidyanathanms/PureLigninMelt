@@ -3,9 +3,9 @@
 headdir=${PWD}
 tprfile_old="npt_main.tpr"; enerfile_old="ener_npt_main.edr"; trajfile_old="traj_npt_main.trr"
 tprfile_new="npt_main.tpr" # dont change the name
-extendtime=100000 #ps
+extendtime=300000 #ps
 
-for run_i in {1..4..1}
+for run_i in {6..6..1}
 do
     rundir="./run_${run_i}"
     if [ ! -d "${rundir}" ]; then

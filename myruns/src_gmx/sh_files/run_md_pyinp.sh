@@ -52,7 +52,11 @@ if ! test -f "$fnvthigh_inp"; then
 	wait
 
 	echo "begin generating nvt_high.tpr.."
+<<<<<<< HEAD
+	# generate nvt high files
+=======
 	# generate nvt files
+>>>>>>> origin/master
 	jsrun -X 1 -n 1 -c 7 -a 1 -g 1 --launch_distribution plane:1 -b packed:7 gmx_mpi grompp -f nvt_high.mdp -c confout_min.gro -p py_topol -n tcgrp_indx.ndx -o nvt_high.tpr 
 	wait
 
@@ -76,7 +80,11 @@ if ! test -f "$fnvt_inp"; then
 
 
         echo "begin generating target temperature NVT: nvt.tpr.."
+<<<<<<< HEAD
+        # generate target nvt files
+=======
         # generate nvt files
+>>>>>>> origin/master
         jsrun -X 1 -n 1 -c 7 -a 1 -g 1 --launch_distribution plane:1 -b packed:7 gmx_mpi grompp -f nvt.mdp -c confout_nvt_high.gro -p py_topol -n tcgrp_indx.ndx -o nvt.tpr
         wait
 
@@ -93,7 +101,11 @@ fnpt_berend_inp=./npt_berendsen.tpr
 if ! test -f "$fnpt_berend_inp"; then
 
 	echo "begin running nvt.tpr.."
+<<<<<<< HEAD
+	# run target nvt.tpr
+=======
 	# run nvt.tpr
+>>>>>>> origin/master
 	jsrun -X 1 -n 1 -c 42 -a 6 -g 6 --launch_distribution plane:6 -b packed:7 gmx_mpi mdrun -s nvt.tpr -cpo state_nvt.cpt -cpi state_nvt.cpt -cpt 5 -g md_nvt.log -o traj_nvt.trr -e ener_nvt.edr -c confout_nvt.gro -pme gpu -npme 1 -nb gpu -bonded gpu -pin off -maxh 1.75
 	wait
 
@@ -119,7 +131,11 @@ if ! test -f "$fnpt_inp"; then
 	wait
 
 	echo "begin generating npt_main.tpr.."
+<<<<<<< HEAD
+	# generate npt_main files
+=======
 	# generate npt_berendsen files
+>>>>>>> origin/master
 	jsrun -X 1 -n 1 -c 7 -a 1 -g 1 --launch_distribution plane:1 -b packed:7 gmx_mpi grompp -f npt_main.mdp -c confout_npt_berendsen.gro -p py_topol -n tcgrp_indx.ndx -o npt_main.tpr
 	wait
 
@@ -131,7 +147,11 @@ else
 
         echo "begin running npt_main.tpr.."
         # run npt_main.tpr
+<<<<<<< HEAD
+        jsrun -X 1 -n 1 -c 21 -a 3 -g 3 --launch_distribution plane:3 -b packed:7 gmx_mpi mdrun -s npt_main.tpr -cpo state_npt_main.cpt -cpi state_npt_main.cpt -cpt 5 -g md_npt_main.log -o traj_npt_main.trr -e ener_npt_main.edr -c confout_npt_main.gro -pme gpu -npme 1 -nb gpu -bonded gpu -pin off -maxh 1.75
+=======
         jsrun -X 1 -n 1 -c 42 -a 6 -g 6 --launch_distribution plane:6 -b packed:7 gmx_mpi mdrun -s npt_main.tpr -cpo state_npt_main.cpt -cpi state_npt_main.cpt -cpt 5 -g md_npt_main.log -o traj_npt_main.trr -e ener_npt_main.edr -c confout_npt_main.gro -pme gpu -npme 1 -nb gpu -bonded gpu -pin off -maxh 1.75
+>>>>>>> origin/master
         wait
 
 
