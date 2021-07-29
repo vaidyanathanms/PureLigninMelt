@@ -23,21 +23,15 @@ clr_arr = [dark_g,orange,brown,'b','k','m']
 mrk_arr = ['o','d','s']
 lne_arr = ['-','--']
 plt.rc('legend',fontsize=16) # fontsize of the legends
-<<<<<<< HEAD
 plt.rcParams.update({'font.size': 16}) # other fonts
 plt.rcParams.update({'figure.autolayout': True})
-=======
-plt.rcParams.update({'font.size': 14}) # other fonts
-plt.rcParams.update({'figure.autolayout': True})
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
+#plt.rcParams['font.family'] = 'serif'
+#plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 #plt.rcParams.update({'font.family': 'Times New Roman'})
->>>>>>> origin/master
 #------------------------------------------------------------------
 
 # Input data
 inp_type  = 'melts' # melts, solvents, cosolvents
-<<<<<<< HEAD
 disperse  = 'poly' # mono/poly; only for melts
 biom_arr  = ['WT'] # biomass type arr
 otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
@@ -56,85 +50,42 @@ nchains   = 19
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
 rg_cal = 2 # avg rg and rg distribution
 tg_cal = 0 # plot specific volume for tg
-=======
-disperse  = 'mono' # mono/poly; only for melts
-biom_arr  = ['WT'] # biomass type arr
-otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
-otyp_leg  = ['None']  # legend for solvents/cosolvents
-run_arr   = [4] # number of independent runs for a given biomass
-temp_min  = 300 # Minimum temperature
-temp_max  = 501 # Maximum temperature
-temp_dt   = 20  # Temperature dt
-#------------------------------------------------------------------
-
-# Plot keys 0,1,2 (0-None,1-separate,2-together)
-sasa    = 0 # plot SASA distribution and average
-rad_gyr = 0 # avg rg and rg distribution
-rdf_pol = 1 # plot polymer-solvent/water RDF 0 or 1
-rdf_bO4 = 0 # plot bO4-solvent/water RDF
-hbonds  = 0 # hbonds of ALL-solv/water/total hbonds
-hb_bo4  = 0 # hbonds of bo4-solv/water/total hbonds
-hb_syr  = 0 # hbonds of syr-solv/water/total hbonds
-hb_gua  = 0 # hbonds of gua-solv/water/total hbonds
-tg_cal  = 0 # plot specific volume for tg
->>>>>>> origin/master
 #------------------------------------------------------------------
 
 # Directory paths
 main_dir = os.getcwd() # current dir
-<<<<<<< HEAD
 scr_dir  = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
-=======
-scr_dir  = '/gpfs/alpine/bip189/scratch/vaidyams' # scratch dir
->>>>>>> origin/master
 scr_dir  = scr_dir + '/Glassy_lignin'
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
     exit("Check scratch directory path")
 #------------------------------------------------------------------
 
-<<<<<<< HEAD
 # Plot glass transition for all solvents
 if tg_cal != 0:
     print("Analyzing Tg data")
 
     denarr = np.arange(temp_min,temp_max,3*temp_dt)
-=======
-# Plot avg SASA for all solvents
-if tg_cal != 0:
-    print("Analyzing Tg data")
-
->>>>>>> origin/master
     for bio_indx in range(len(biom_arr)): # loop in biomass
 
         biomass = biom_arr[bio_indx]
         if tg_cal == 2: # plot all averages together
             res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-<<<<<<< HEAD
                       '/pdi_' + str(pdi_val) + '/results'
-=======
-                      'results'
->>>>>>> origin/master
             if not os.path.isdir(res_dir):
                 os.mkdir(res_dir)
 
             # Write data and then read to concatenate
             tg_fyl = res_dir + '/tgdata.dat'
             fc_tg = open(tg_fyl,'w')
-<<<<<<< HEAD
             fc_tg.write('%s\t%s\t%s\n' \
                         %('Biomass','Temp','SV_NPT'))
-=======
-            fc_tg.write('%s\t%s\t%s\t%s\n' \
-                        %('Temp','#Runs','SV_Berend','SV_NPT'))
->>>>>>> origin/master
 
 
         tg_avg = np.zeros(0)
 
         # Define axes labels for distribution
         fig1,ax1 = plt.subplots()
-<<<<<<< HEAD
         ax1.set_xlabel(r'Time (ps)')
         ax1.set_ylabel(r'Density ($kg$/$m^3$)')
         plt.style.use('seaborn-colorblind')
@@ -144,20 +95,10 @@ if tg_cal != 0:
 
         for tval in range(temp_min,temp_max,temp_dt): # loop in temp
             temp_leg  = str(tval)
-=======
-        ax1.set_xlabel(r'Tempearture ($K$)')
-        ax1.set_ylabel(r'Specific Volume ($m^3$/$kg$')
-        plt.style.use('seaborn-colorblind')
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
->>>>>>> origin/master
             yall = np.zeros(0)
             yavg = 0
 
             for casenum in range(len(run_arr)): # loop in runarr
-<<<<<<< HEAD
                 wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
                                                 pdi_val,run_arr[casenum],\
                                                 tval,solv_type)
@@ -167,17 +108,6 @@ if tg_cal != 0:
                     fname  = tdir + '/dens_npt.xvg'
                 elif os.path.exists(wdir + '/dens_npt.xvg'):
                     fname  = wdir + '/dens_npt.xvg'
-=======
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'anafiles',solv_type)
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file
-                if os.path.exists(anadir + '/sasa.xvg'):
-                    fname  = anadir + '/sasa.xvg'
-                elif os.path.exists(wdir + '/sasa.xvg'):
-                    fname  = wdir + '/sasa.xvg'
->>>>>>> origin/master
                 else:
                     print(fname, " does not exist! ")
                     continue
@@ -190,7 +120,6 @@ if tg_cal != 0:
                     data  = np.loadtxt(lines)
 
                 yall = np.append(yall,data[:,1]) #append all y-data
-<<<<<<< HEAD
                 halflen = int(0.5*len(yall))
                 yavg += np.average(data[halflen:len(yall)-1,1])
 
@@ -286,180 +215,12 @@ if rg_cal != 0:
                         %('Temperature','<Rg^2>','<Rg^4>','Alpha'))
 
         # Define axes labels for plotting Rg distribution
-=======
-                yavg += np.average(data[:,1])
-
-            # append avg to yavg
-            ysasa_avg = np.append(ysasa_avg,yavg/len(run_arr))
-            # plot histogram across all cases
-            sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
-
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_SASAdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-
-        # Plot average
-        fig2,ax2 = plt.subplots()
-        ax2.set_ylabel(r'SASA (nm$^2$)')
-        plt.style.use('seaborn-colorblind')
-        sns.barplot(otyp_arr,np.array(ysasa_avg),ax=ax2)
-        plt.tight_layout()
-        change_width(ax2,0.5)
-        fig2.savefig(fig_dir + '/'+biomass+'_SASAavg.png',dpi=fig2.dpi)
-        plt.close(fig2)
-
-        if sasa == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                sasa_tot  = ysasa_avg[indx]
-                fc_ss.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
-                                             sasa_tot))
-    if sasa == 2:
-        fc_ss.close()
-        df=pd.read_table(sasa_fyl)
-        maxval = df['SASA'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="SASA",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'SASA (nm$^2$)')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllSASA.png',dpi=figa.dpi)
-        plt.close(figa)
-#------------------------------------------------------------------
-
-# Plot avg SASA for all solvents
-if sasa != 0:
-    print("Analyzing SASA data")
-
-    if sasa == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        sasa_fyl = consol_dir + '/sasadata.dat'
-        fc_ss = open(sasa_fyl,'w')
-        fc_ss.write('%s\t%s\t%s\n' %('Biomass','Solvent','SASA'))
-
-
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        ysasa_avg = np.zeros(0)
-
-        # Define axes labels for distribution
-        fig1,ax1 = plt.subplots()
-        ax1.set_xlabel(r'SASA (nm$^2$)')
-        ax1.set_ylabel('Probability')
-        plt.style.use('seaborn-colorblind')
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            yall = np.zeros(0)
-            yavg = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'anafiles',solv_type)
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file
-                if os.path.exists(anadir + '/sasa.xvg'):
-                    fname  = anadir + '/sasa.xvg'
-                elif os.path.exists(wdir + '/sasa.xvg'):
-                    fname  = wdir + '/sasa.xvg'
-                else:
-                    print(fname, " does not exist! ")
-                    continue
-
-                # Open and parse file
-                with open(fname) as fin:
-                    lines = (line.lstrip() for line in fin \
-                             if not line.lstrip().startswith('#') and \
-                             not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines)
-
-                yall = np.append(yall,data[:,1]) #append all y-data
-                yavg += np.average(data[:,1])
-
-            # append avg to yavg
-            ysasa_avg = np.append(ysasa_avg,yavg/len(run_arr))
-            # plot histogram across all cases
-            sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
-
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_SASAdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-
-        # Plot average
-        fig2,ax2 = plt.subplots()
-        ax2.set_ylabel(r'SASA (nm$^2$)')
-        plt.style.use('seaborn-colorblind')
-        sns.barplot(otyp_arr,np.array(ysasa_avg),ax=ax2)
-        plt.tight_layout()
-        change_width(ax2,0.5)
-        fig2.savefig(fig_dir + '/'+biomass+'_SASAavg.png',dpi=fig2.dpi)
-        plt.close(fig2)
-
-        if sasa == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                sasa_tot  = ysasa_avg[indx]
-                fc_ss.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
-                                             sasa_tot))
-    if sasa == 2:
-        fc_ss.close()
-        df=pd.read_table(sasa_fyl)
-        maxval = df['SASA'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="SASA",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'SASA (nm$^2$)')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllSASA.png',dpi=figa.dpi)
-        plt.close(figa)
-#------------------------------------------------------------------
-
-
-# Plot avg rg and rg distribution
-if rad_gyr != 0:
-    print("Analyzing Rg data")
-
-    if rad_gyr == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        rgall_fyl = consol_dir + '/Rgdata.dat'
-        fc_rg = open(rgall_fyl,'w')
-        fc_rg.write('%s\t%s\t%s\n' %('Biomass','Solvent','Rg'))
-
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yrg_avg = np.zeros(0)
-
-        # Define axes labels for distribution
->>>>>>> origin/master
         fig1,ax1 = plt.subplots()
         ax1.set_xlabel(r'$R_{g}$' ' (nm)')
         ax1.set_ylabel('Probability')
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
 
-<<<<<<< HEAD
         for tval in range(temp_min,temp_max,temp_dt): # loop in temp
             temp_leg  = str(tval)
             rgall = np.zeros(0)
@@ -559,80 +320,6 @@ if rad_gyr != 0:
         change_width(axa,0.2)
         figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
                      dpi=figa.dpi)
-=======
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            yall = np.zeros(0)
-            yavg = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'anafiles',solv_type)
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file
-                if os.path.exists(anadir + '/rg_chain.xvg'):
-                    fname  = anadir + '/rg_chain.xvg'
-                elif os.path.exists(wdir + '/rg_chain.xvg'):
-                    fname  = wdir + '/rg_chain.xvg'
-                else:
-                    print(fname, " does not exist! ")
-                    continue
-
-                # Open and parse file
-                with open(fname) as fin:
-                    lines = (line.lstrip() for line in fin \
-                             if not line.lstrip().startswith('#') and \
-                             not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines)
-
-                yavg += np.average(data[:,1])
-                yall = np.append(yall,data[:,1]) #append all y-data
-
-            # append avg to yavg
-            yrg_avg = np.append(yrg_avg,yavg/len(run_arr))
-
-            # plot histogram across all cases
-            sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
-
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_Rgdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-
-        # Plot average
-        fig2,ax2 = plt.subplots()
-        ax2.set_ylabel(r'$R_g$ (nm)')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yrg_avg),ax=ax2)
-        change_width(ax2,0.5)
-        fig2.savefig(fig_dir + '/'+biomass+'_Rgavg.png',dpi=fig2.dpi)
-        plt.close(fig2)
-
-        if rad_gyr == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                rg_tot  = yrg_avg[indx]
-                fc_rg.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
-                                             rg_tot))
-    if rad_gyr == 2:
-        fc_rg.close()
-        df=pd.read_table(rgall_fyl)
-        maxval = df['Rg'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="Rg",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$R_g$' ' (nm)')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllRg.png',dpi=figa.dpi)
->>>>>>> origin/master
         plt.close(figa)
 #------------------------------------------------------------------
 
