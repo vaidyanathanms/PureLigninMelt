@@ -23,6 +23,7 @@ clr_arr = [dark_g,orange,brown,'b','k','m']
 mrk_arr = ['o','d','s']
 lne_arr = ['-','--']
 plt.rc('legend',fontsize=16) # fontsize of the legends
+<<<<<<< HEAD
 plt.rcParams.update({'font.size': 16}) # other fonts
 plt.rcParams.update({'figure.autolayout': True})
 #plt.rcParams['font.family'] = 'serif'
@@ -45,6 +46,20 @@ temp_dt   = 20  # Temperature dt
 pdi_arr   = [1.8, 3.0]
 mark_arr  = ['o','v']
 #------------------------------------------------------------------
+=======
+plt.rcParams.update({'font.size': 20}) # other fonts
+plt.rcParams.update({'figure.autolayout': True})
+#------------------------------------------------------------------
+
+# Input data
+inp_type  = 'cosolvents' # melts, solvents, cosolvents
+disperse  = 'mono' # mono/poly; only for melts
+biom_arr  = ['MYB']#,'COMT','MYB'] # biomass type arr
+otyp_arr  = ['EOH']#,'GVL','THF']  # solvent arr for solvents/cosolvents
+run_arr   = [4,5,6] # number of independent runs for a given biomass
+#------------------------------------------------------------------
+
+>>>>>>> origin/master
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
 sasa    = 0 # plot SASA distribution and average
 rad_gyr = 0 # avg rg and rg distribution
@@ -52,20 +67,30 @@ rdf_pol = 0 # plot polymer-solvent/water RDF 0 or 1
 rdf_bO4 = 0 # plot bO4-solvent/water RDF
 hbonds  = 0 # hbonds of ALL-solv/water/total hbonds
 hb_bo4  = 0 # hbonds of bo4-solv/water/total hbonds
+<<<<<<< HEAD
 hb_syr  = 0 # hbonds of syr-solv/water/total hbonds
 hb_gua  = 0 # hbonds of gua-solv/water/total hbonds
 tg_cal  = 2 # plot specific volume for tg
+=======
+hb_syr  = 2 # hbonds of syr-solv/water/total hbonds
+hb_gua  = 0 # hbonds of gua-solv/water/total hbonds
+>>>>>>> origin/master
 #------------------------------------------------------------------
 
 # Directory paths
 main_dir = os.getcwd() # current dir
 scr_dir  = '/gpfs/alpine/bip189/scratch/vaidyams' # scratch dir
+<<<<<<< HEAD
 scr_dir  = scr_dir + '/Glassy_lignin'
+=======
+scr_dir  = scr_dir + '/lignin'
+>>>>>>> origin/master
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
     exit("Check scratch directory path")
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
 # Plot glass transition for all solvents
 if tg_cal != 0:
     print("Analyzing Tg data")
@@ -196,6 +221,9 @@ if tg_cal != 0:
         plt.close(fig2)
 
 #------------------------------------------------------------------
+=======
+# Check basic directories and return head directory
+>>>>>>> origin/master
 
 # Plot avg SASA for all solvents
 if sasa != 0:
@@ -224,7 +252,10 @@ if sasa != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             yall = np.zeros(0)
             yavg = 0
 
@@ -255,7 +286,11 @@ if sasa != 0:
             # append avg to yavg
             ysasa_avg = np.append(ysasa_avg,yavg/len(run_arr))
             # plot histogram across all cases
+<<<<<<< HEAD
             sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
+=======
+            sns.kdeplot(data=np.array(yall),label=solv_type,ax=ax1)
+>>>>>>> origin/master
 
         # Save histogram plot
         ax1.legend(loc=0)
@@ -275,9 +310,14 @@ if sasa != 0:
         if sasa == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 sasa_tot  = ysasa_avg[indx]
                 fc_ss.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
+=======
+                sasa_tot  = ysasa_avg[indx]
+                fc_ss.write('%s\t%s\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                              sasa_tot))
     if sasa == 2:
         fc_ss.close()
@@ -324,7 +364,10 @@ if rad_gyr != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             yall = np.zeros(0)
             yavg = 0
 
@@ -356,7 +399,11 @@ if rad_gyr != 0:
             yrg_avg = np.append(yrg_avg,yavg/len(run_arr))
 
             # plot histogram across all cases
+<<<<<<< HEAD
             sns.kdeplot(data=np.array(yall),label=solv_leg,ax=ax1)
+=======
+            sns.kdeplot(data=np.array(yall),label=solv_type,ax=ax1)
+>>>>>>> origin/master
 
         # Save histogram plot
         ax1.legend(loc=0)
@@ -376,9 +423,14 @@ if rad_gyr != 0:
         if rad_gyr == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 rg_tot  = yrg_avg[indx]
                 fc_rg.write('%s\t%s\t%g\n' %(biomass,solv_leg,\
+=======
+                rg_tot  = yrg_avg[indx]
+                fc_rg.write('%s\t%s\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                              rg_tot))
     if rad_gyr == 2:
         fc_rg.close()
@@ -397,6 +449,7 @@ if rad_gyr != 0:
         plt.close(figa)
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
 # Plot RDF (pol-solvent, pol-water)
 if rdf_pol:
     
@@ -492,6 +545,8 @@ if rdf_pol:
         plt.close(fig2)
 #------------------------------------------------------------------
 
+=======
+>>>>>>> origin/master
 # Plot RDF (bO4-solvent, bO4-water)
 if rdf_bO4:
     
@@ -517,7 +572,10 @@ if rdf_bO4:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             xdata = np.zeros(0)
             y1data = np.zeros(0); y2data = np.zeros(0)
             rdata = np.zeros(0) # for counting repeats
@@ -574,8 +632,13 @@ if rdf_bO4:
             # Divide ydata by rdata
             y1data /= rdata
             y2data /= rdata
+<<<<<<< HEAD
             ax1.plot(xdata,y1data,label=solv_leg)
             ax2.plot(xdata,y2data,label=solv_leg)
+=======
+            ax1.plot(xdata,y1data,label=solv_type)
+            ax2.plot(xdata,y2data,label=solv_type)
+>>>>>>> origin/master
 
         ax1.legend(loc=0)
         ax2.legend(loc=0)
@@ -609,7 +672,10 @@ if hbonds != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             y_wavg = 0; y_savg = 0; y_tavg = 0
             n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
 
@@ -649,6 +715,10 @@ if hbonds != 0:
                     print("sol_hbnum does not exist!")
                     continue
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
                 for fname in fsol_list:
                     # Open and parse file
                     with open(fname) as fin:
@@ -680,7 +750,11 @@ if hbonds != 0:
         fig1.savefig(fig_dir + '/'+biomass+'_HBWat.png',dpi=fig1.dpi)
         
         fig2, ax2 = plt.subplots()
+<<<<<<< HEAD
         ax2.set_ylabel(r'#HBs with the organic solvent')
+=======
+        ax2.set_ylabel(r'$\langle$ #HB (Org. Solv.) $\rangle$')
+>>>>>>> origin/master
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
         sns.barplot(otyp_arr,np.array(yhbs_avg),ax=ax2)
@@ -700,10 +774,16 @@ if hbonds != 0:
         if hbonds == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
                 hbt = yhbt_avg[indx]
                 fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
+=======
+                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
+                hbt = yhbt_avg[indx]
+                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                                      hbw,hbs,hbt))
     if hbonds == 2:
         fc_hb.close()
@@ -738,11 +818,16 @@ if hbonds != 0:
         plt.tight_layout()
         sns.barplot(x="Biomass",y="HB_Sol",hue="Solvent",data=df,\
                     ax=axa)
+<<<<<<< HEAD
         axa.set_ylabel(r'$\langle$ #HBs with the Organic Solvent $\rangle$')
         axa.set_ylim([0,1.2*maxval])
         axa.set_xlabel('')
         plt.minorticks_on()
         axa.tick_params(axis='x', which='minor', bottom=False)
+=======
+        axa.set_ylabel(r'$\langle$ #Org.Solv.-HB $\rangle$')
+        axa.set_ylim([0,1.2*maxval])
+>>>>>>> origin/master
         axa.legend(loc=0,ncol = len(axa.lines))
         change_width(axa,0.2)
         figa.savefig(fig_dir + '/'+'AllHBOsol.png',dpi=figa.dpi)
@@ -772,7 +857,10 @@ if hb_bo4 != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             y_wavg = 0; y_savg = 0; y_tavg = 0
             n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
 
@@ -871,10 +959,16 @@ if hb_bo4 != 0:
         if hb_bo4 == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
                 hbt = yhbt_avg[indx]
                 fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
+=======
+                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
+                hbt = yhbt_avg[indx]
+                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                                      hbw,hbs,hbt))
     if hb_bo4 == 2:
         fc_hb.close()
@@ -917,7 +1011,10 @@ if hb_syr != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents (SYR)
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             y_wavg = 0; y_savg = 0; y_tavg = 0
             n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
 
@@ -1016,10 +1113,16 @@ if hb_syr != 0:
         if hb_syr == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
                 hbt = yhbt_avg[indx]
                 fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
+=======
+                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
+                hbt = yhbt_avg[indx]
+                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                                      hbw,hbs,hbt))
     if hb_syr == 2:
         fc_hb.close()
@@ -1062,7 +1165,10 @@ if hb_gua != 0:
 
         for sol_indx in range(len(otyp_arr)): # loop in solvents (SYR)
             solv_type = otyp_arr[sol_indx]
+<<<<<<< HEAD
             solv_leg  = otyp_leg[sol_indx]
+=======
+>>>>>>> origin/master
             y_wavg = 0; y_savg = 0; y_tavg = 0
             n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
 
@@ -1161,10 +1267,16 @@ if hb_gua != 0:
         if hb_gua == 2:
             for indx in range(len(otyp_arr)): # loop in solvents
                 solv_type = otyp_arr[indx]
+<<<<<<< HEAD
                 solv_leg  = otyp_leg[indx]
                 hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
                 hbt = yhbt_avg[indx]
                 fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
+=======
+                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
+                hbt = yhbt_avg[indx]
+                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_type,\
+>>>>>>> origin/master
                                                      hbw,hbs,hbt))
     if hb_gua == 2:
         fc_hb.close()

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Aux python codes for generating GROMACS inputs for analysis
 # Ver: May-11-2021
 #------------------------------------------------------------------
@@ -250,3 +251,8 @@ def split_and_return_filename(inp_fylename):
     outstr = inp_fylename.split('/')
     return outstr[len(outstr)-1]
 #--------------------------------------------------------------------
+=======
+# Generate GROMACS inputs for analysis
+# Ver: May-11-2021
+
+>>>>>>> origin/master

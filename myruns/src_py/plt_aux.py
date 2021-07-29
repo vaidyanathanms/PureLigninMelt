@@ -59,6 +59,7 @@ def gencpy(dum_maindir,dum_destdir,fylname):
     shutil.copy2(srcfyl,desfyl)
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
 def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
                  solv_type='None'):
     # Check all directories
@@ -103,6 +104,9 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
 #------------------------------------------------------------------        
 
 def ret_ana_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
+=======
+def ret_ana_dir(scr_dir,inp_type,biomass,disperse,casenum,subdir,\
+>>>>>>> origin/master
                  solv_type='None'):
     # Check all directories
     head_dir = scr_dir + '/' + inp_type
@@ -118,7 +122,11 @@ def ret_ana_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
         raise RuntimeError(poly_dir + " does not exist!")
         
     if inp_type == 'melts':
+<<<<<<< HEAD
         poly_dir = poly_dir + '/pdi_' + str(dispval)
+=======
+        poly_dir = poly_dir + '/' + disperse
+>>>>>>> origin/master
         if not os.path.isdir(poly_dir):
             raise RuntimeError(poly_dir + " does not exist!")
 

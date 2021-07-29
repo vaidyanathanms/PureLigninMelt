@@ -1,7 +1,11 @@
 title                   = Ligninmelt_NVT_Equilibration ; Title 
 ; Run parameters
 integrator              = md        ; leap-frog integrator
+<<<<<<< HEAD
 nsteps                  = 50000000  ; 1 * 50000000 fs = 50 ns
+=======
+nsteps                  = 20000000  ; 2 * 20000000 fs = 20 ns
+>>>>>>> origin/master
 dt                      = 0.001     ; 1 fs
 ; Output control
 nstxout                 = 5000       ; save coordinates every 10.0 ps

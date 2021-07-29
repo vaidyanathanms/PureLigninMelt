@@ -32,12 +32,21 @@ else:
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
+<<<<<<< HEAD
 disp_arr  = [1.8]
 run_arr   = [7] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
 temp_min  = 600 # Minimum temperature
 temp_max  = 601 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10  # Temperature dt
+=======
+disp_arr  = [1.0]
+run_arr   = [3] # number of independent runs for a given biomass
+high_temp = 600 # Run at high temperature for relaxation
+temp_min  = 300 # Minimum temperature
+temp_max  = 501 # Maximum temperature (< max; add +1 to desired)
+temp_dt   = 20  # Temperature dt
+>>>>>>> origin/master
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
 solv_name = 'None' # add this later

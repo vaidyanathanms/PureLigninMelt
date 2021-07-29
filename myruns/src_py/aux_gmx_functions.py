@@ -70,7 +70,7 @@ def check_inp_files(dum_inpdir,top_name):
         print('More than one topology file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.top')
         topol_fname = max(fnames, key=os.path.getmtime)
-
+    
     return conf_fname, topol_fname
 #------------------------------------------------------------------
 

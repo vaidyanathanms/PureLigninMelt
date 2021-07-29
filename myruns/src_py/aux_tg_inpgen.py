@@ -405,11 +405,14 @@ def edit_pp_files(biomass,inp_type,polycfg,nsolv,nwater,\
     poly_cfg = ret_file_str(polycfg)
     ff_dir   = ret_file_str(ffdir)
 
+<<<<<<< HEAD
     if tempval == 600:
         dval = 1.0 # for PRE-equilibration
     else:
         dval = 0.2 # after first set of relaxation
 
+=======
+>>>>>>> origin/master
     # job/box name
     jname = 'pp_'+ biomass + '_T_' + str(tempval)
     if inp_type == 'solvents' or inp_type == 'cosolvents':
@@ -466,8 +469,12 @@ def edit_pp_files(biomass,inp_type,polycfg,nsolv,nwater,\
           replace("py_solvate_2", solv_str2).\
           replace("py_topol",top_fyle).\
           replace("py_indexfyle",indx_fyle).\
+<<<<<<< HEAD
           replace("py_finconf",fin_conf).\
           replace("py_dval",str(dval))
+=======
+          replace("py_finconf",fin_conf)
+>>>>>>> origin/master
     fw.write(fid)
     fr.close(); fw.close()
 

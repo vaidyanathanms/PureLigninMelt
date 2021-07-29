@@ -27,19 +27,28 @@ else:
     exit()
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
 # Input Keys
 rg_calc   = 1 # Calculate rg
 msd_calc  = 0 # Calculate msd
 rdf_calc  = 0 # Calculate rdf
 
+=======
+>>>>>>> origin/master
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [3.0]
+<<<<<<< HEAD
 run_arr   = [6] # number of independent runs for a given biomass
 temp_min  = 360 # Minimum temperature
 temp_max  = 501 # Maximum temperature (< max; add +1 to desired)
+=======
+run_arr   = [1] # number of independent runs for a given biomass
+temp_min  = 300 # Minimum temperature
+temp_max  = 321 # Maximum temperature (< max; add +1 to desired)
+>>>>>>> origin/master
 temp_dt   = 20  # Temperature dt
 npoly_res = 22  # number of polymer residues
 nchains   = 20  # Number of chains - cross check from conf file
@@ -57,8 +66,12 @@ cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
 itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
 mdp_dir   = gmx_dir + '/' + 'mdp_files' # mdp file dir
 sh_dir    = gmx_dir + '/' + 'sh_files' # sh file dir
+<<<<<<< HEAD
 scr_dir   = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
 #------------------------------------------------------------------
+=======
+scr_dir   = '/gpfs/alpine/bip189/scratch/vaidyams' # scratch dir
+>>>>>>> origin/master
 
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
@@ -68,7 +81,12 @@ if not os.path.isdir(scr_dir):
     os.mkdir(scr_dir)
 #------------------------------------------------------------------
 
+<<<<<<< HEAD
 #v Required GMX/sh and default gro/top files
+=======
+# Required GMX/sh and default gro/top files
+sh_md_fyle = 'run_ana_pyinp.sh'
+>>>>>>> origin/master
 def_inicon = 'initconf.gro'
 #------------------------------------------------------------------
 
@@ -109,6 +127,7 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 print(temp_dir, " does not exist")
                 continue
 
+<<<<<<< HEAD
             print('Analyzing: ', biomass,inp_type,'run_'+\
                   str(run_arr[casenum]), 'T_'+str(curr_temp))
 
@@ -137,3 +156,12 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             print("Completed T = ", curr_temp)
             os.chdir(main_dir) #main dir
+=======
+            poly_conffile,poly_topfile=check_inp_files(temp_dir,\
+                                                       'None')
+
+            mon_list,at_list = count_nchains(temp_dir,poly_conffile,\
+                                             num_chains)
+
+#            create_anaindx_grps(poly_conffile,mon_list,at_list)
+>>>>>>> origin/master
