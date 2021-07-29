@@ -1,4 +1,5 @@
 ./SPRInG_PolydispersePolymerBuilder
-./shalini
-./geninit_config
-./myruns/src_py/aux_gmx_functions.pyc
+/shalini
+/geninit_config
+myruns/src_py/aux_gmx_functions.pyc
+/shalini
