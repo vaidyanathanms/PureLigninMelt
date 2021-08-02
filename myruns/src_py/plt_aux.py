@@ -143,7 +143,6 @@ def ret_ana_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
 
     return workdir1, anadir, fig_dir
 #------------------------------------------------------------------        
-
 # Change width of seaborn barplot
 def change_width(ax, new_value):
     for patch in ax.patches:
@@ -155,4 +154,31 @@ def change_width(ax, new_value):
 
         # Recenter the bar
         patch.set_x(patch.get_x() + diff * .5)
+#------------------------------------------------------------------
+
+# Return Chain ID from file name
+def ret_chid(inpfyle):
+    outstr = re.split(r'/|.xvg|_',inpfyle)
+    chid = outstr[len(outstr)-2]
+    if not chid.isdigit():
+        print('ERR: not a numeric value', chid)
+    else:
+        return int(chid)
+#------------------------------------------------------------------
+
+def ret_mons(inpfyle):
+    if not os.path.exists(inpfyle):
+        raise RuntimeError('File not found ' + inpfyle)
+    mon_arr = []
+    with open(inpfyle) as finp:
+        finp.readline()
+        for line in finp:
+            line = line.rstrip('/n')
+            outstr = line.split()
+            mon_arr.append(outstr[len(outstr)-2])
+    return mon_arr
+#------------------------------------------------------------------
+# if __name__
+if __name__ == '__main__':
+    main()
 #------------------------------------------------------------------

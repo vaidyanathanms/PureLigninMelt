@@ -39,17 +39,18 @@ otyp_leg  = ['None']  # legend for solvents/cosolvents
 solv_type = 'None'
 pdi_val   = 3.0
 run_arr   = [6] # number of independent runs for a given biomass
-temp_min  = 400 # Minimum temperature
-temp_max  = 421 # Maximum temperature
+temp_min  = 380 # Minimum temperature
+temp_max  = 501 # Maximum temperature
 temp_dt   = 20  # Temperature dt
 pdi_arr   = [3.0]
 mark_arr  = ['o','v']
-nchains   = 19
+nchains   = 20
 #------------------------------------------------------------------
 
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
 rg_cal = 2 # avg rg and rg distribution
 tg_cal = 0 # plot specific volume for tg
+rdf_pol = 0
 #------------------------------------------------------------------
 
 # Directory paths
@@ -210,9 +211,9 @@ if rg_cal != 0:
             
             # Write data and then read to concatenate
             rg_fyl = res_dir + '/Rgdata.dat'
-            fc_rg = open(rg_fyl,'w')
-            fc_rg.write('%s\t%s\t%s\t%s\n' \
-                        %('Temperature','<Rg^2>','<Rg^4>','Alpha'))
+            fall_rg = open(rg_fyl,'w')
+            fall_rg.write('%s\t%s\t%s\t%s\n' \
+                        %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
 
         # Define axes labels for plotting Rg distribution
         fig1,ax1 = plt.subplots()
@@ -240,13 +241,21 @@ if rg_cal != 0:
                     continue
 
                 if len(list_of_files) != nchains:
-                    print('ERR: Mismatch in number of analysis files and input',\
+                    print('ERR: Mismatch in number of analysis file and input',\
                           nchains, len(list_of_files))
                     print(list_of_files)
                     continue
                 
+                mon_arr = ret_mons(tdir + '/rganalysis/chainlist.dat')
+                rg_case = res_dir + '/Rg_casenum_' + str(casenum)+ \
+                         '_T_' + str(tval) + '.dat'
+                fcase_rg = open(rg_case,'w')
+                fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
+                            %('ChainID','Nmons','<Rg^2>','<Rg^4>','Rg4/rg2^2'))
+
                 case_rg2 = 0; case_rg4 = 0
                 for fyle in list_of_files:
+                    chid = ret_chid(fyle)
                     # Open and parse file
                     with open(fyle) as fin:
                         lines = (line.lstrip() for line in fin \
@@ -255,8 +264,13 @@ if rg_cal != 0:
                         data  = np.loadtxt(lines)
                         l1 = int(0.2*len(data[:1]))
                         l2 = len(data[:,1])
-                        case_rg2 += np.average(np.square(data[l1:l2,1]))
-                        case_rg4 += np.average(np.power(data[l1:l2,1],4))
+                        rg2 = np.average(np.square(data[l1:l2,1]))
+                        rg4 = np.average(np.power(data[l1:l2,1],4))
+                        al =  rg4/(rg2*rg2)
+                        fcase_rg.write('%g\t%g\t%g\t%g\t%g\n' %(chid,int(mon_arr[chid]),rg2,rg4,al))
+
+                        case_rg2 += rg2
+                        case_rg4 += rg4
                         rgall = np.append(rgall,data[l1:l2,1]) #append all rg-data
                         
                 chain_rg2 += case_rg2/nchains
@@ -264,11 +278,11 @@ if rg_cal != 0:
 
             chain_rg2 /= len(run_arr)
             chain_rg4 /= len(run_arr)
-            alpha = (3*chain_rg4)/(5*chain_rg2*chain_rg2) - 1
+            alpha = (chain_rg4)/(chain_rg2*chain_rg2)
 
             if rg_cal == 2:
-                fc_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
-                                                 chain_rg4,alpha))
+                fall_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
+                                                   chain_rg4,alpha))
 
             # plot histogram across all cases
             sns.kdeplot(data=np.array(rgall),label=temp_leg,ax=ax1)
@@ -280,7 +294,7 @@ if rg_cal != 0:
         plt.close(fig1)
 
     if rg_cal == 2:
-        fc_rg.close()
+        fall_rg.close()
         df=pd.read_table(rg_fyl)
 
         #Plot Rg^2 - T
@@ -310,13 +324,13 @@ if rg_cal != 0:
         plt.close(figa)
 
         #Plot Alpha - T
-        maxval = df['Alpha'].max()
+        maxval = df['Rg4/Rg2^2'].max()
         figa, axa = plt.subplots()
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['Alpha'])
+        axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
         axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$\alpha$')
+        axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
         change_width(axa,0.2)
         figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
                      dpi=figa.dpi)
@@ -416,695 +430,4 @@ if rdf_pol:
         fig2.savefig(fig_dir + '/'+biomass+'_rdfpwat.png',dpi=fig2.dpi)
         plt.close(fig1)
         plt.close(fig2)
-#------------------------------------------------------------------
-
-# Plot RDF (bO4-solvent, bO4-water)
-if rdf_bO4:
-    
-    print("Analyzing beta-O-4 RDF data")
-    
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yrg_avg = np.zeros(0)
-
-        # Plot polymer-solvent RDF
-        fig1,ax1 = plt.subplots()
-        ax1.set_xlabel(r'$r$ (nm)')
-        ax1.set_ylabel(r'$g_{\mathrm{pol-orgsol}}(r)$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-
-        # Plot polymer-water RDF
-        fig2,ax2 = plt.subplots()
-        ax2.set_xlabel(r'$r$ (nm)')
-        ax2.set_ylabel(r'$g_{\mathrm{pol-water}}(r)$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            xdata = np.zeros(0)
-            y1data = np.zeros(0); y2data = np.zeros(0)
-            rdata = np.zeros(0) # for counting repeats
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'anafiles',solv_type)
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file
-                if os.path.exists(anadir + '/rdfout2.xvg'):
-                    fname  = anadir + '/rdfout2.xvg'
-                elif os.path.exists(wdir + '/rdfout2.xvg'):
-                    fname  = wdir + '/rdfout2.xvg'
-                else:
-                    print(fname, " does not exist! ")
-                    continue
-
-                # Open and parse file
-                with open(fname) as fin:
-                    lines = (line.lstrip() for line in fin \
-                             if not line.lstrip().startswith('#') and \
-                             not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines)
-
-                if casenum == 0: #append all x/y-data
-                    xdata = np.append(xdata,data[:,0])
-                    y1data = np.append(y1data,data[:,1])
-                    y2data = np.append(y2data,data[:,2])
-                    omax_xval = np.amax(xdata)
-                    olen_data = len(xdata)
-                    rdata = np.full((len(xdata)),1,dtype=int)
-                else:
-                    if np.amax(data[:,0]) >= omax_xval:
-                        for i_indx in range(olen_data):
-                            y1data[i_indx] += data[i_indx,1]
-                            y2data[i_indx] += data[i_indx,2]
-                            rdata[i_indx] += 1
-                        len_data = len(data[:,0])
-                        max_xval = np.amax(data[:,0])
-                        xdata = np.append(xdata,data[i_indx:len_data-1,0])
-                        y1data = np.append(y1data,data[i_indx:len_data-1,1])
-                        y2data = np.append(y2data,data[i_indx:len_data-1,1])
-                        rnew  = np.full((1,len_data-olen_data),1,dtype=int)
-                        rdata = np.append(rdata,rnew)
-                        omax_xval = max_xval
-                        olen_data = len_data
-                    else:
-                        for i_indx in range(len(data[:,0])):
-                            y1data[i_indx] += data[i_indx,1]
-                            y2data[i_indx] += data[i_indx,2]
-                            rdata[i_indx] += 1
-                        
-            # Divide ydata by rdata
-            y1data /= rdata
-            y2data /= rdata
-            ax1.plot(xdata,y1data,label=solv_leg)
-            ax2.plot(xdata,y2data,label=solv_leg)
-
-        ax1.legend(loc=0)
-        ax2.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_rdfsol.png',dpi=fig1.dpi)
-        fig2.savefig(fig_dir + '/'+biomass+'_rdfwat.png',dpi=fig2.dpi)
-        plt.close(fig1)
-        plt.close(fig2)
-#------------------------------------------------------------------
-
-# Plot hbonds
-if hbonds != 0:
-
-    print("Analyzing total hydrogen bonds data")
-
-    if hbonds == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        hbc_fyl = consol_dir + '/hbdata.dat'
-        fc_hb = open(hbc_fyl,'w')
-        fc_hb.write('%s\t%s\t%s\t%s\t%s\n' %('Biomass','Solvent',\
-                                             'HB_Wat','HB_Sol',\
-                                             'HB_Tot'))
-   
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yhbw_avg = np.zeros(0); yhbs_avg = np.zeros(0)
-        yhbt_avg = np.zeros(0)
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            y_wavg = 0; y_savg = 0; y_tavg = 0
-            n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'anafiles',solv_type)
-
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file(s) for water hbond
-                if glob.glob(anadir + '/wat_hbnum*') != []:
-                    fwat_list = glob.glob(anadir + '/wat_hbnum*')
-                elif glob.glob(wdir + '/wat_hbnum*') != []:
-                    fwat_list = glob.glob(wdir + '/wat_hbnum*')
-                else:
-                    print("wat_hbnum does not exist!")
-                    continue
-
-                for fname in fwat_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-wat
-                    y_wavg += np.sum(data[:,1]); n_wfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1]); n_tfyl += data[:,1].size
-                    
-                # Check file(s) for solvent hbond
-                if glob.glob(anadir + '/sol_hbnum*') != []:
-                    fsol_list = glob.glob(anadir + '/sol_hbnum*')
-                elif glob.glob(wdir + '/sol_hbnum*') != []:
-                    fsol_list = glob.glob(wdir + '/sol_hbnum*')
-                else:
-                    print("sol_hbnum does not exist!")
-                    continue
-
-                for fname in fsol_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-solv
-                    y_savg += np.sum(data[:,1]); n_sfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1])
-
-                if n_wfyl != n_sfyl: # Sanity check
-                    print(n_wfyl,n_sfyl)
-                    print('total HB cannot be defined')
-                    
-            # append avg to overall averages
-            yhbw_avg = np.append(yhbw_avg,y_wavg/n_wfyl)
-            yhbs_avg = np.append(yhbs_avg,y_savg/n_sfyl)
-            yhbt_avg = np.append(yhbt_avg,y_tavg/n_tfyl)
-
-        # Plot averages
-        fig1, ax1 = plt.subplots()
-        ax1.set_ylabel(r'$\langle$ #HB (Water) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbw_avg),ax=ax1)
-        change_width(ax1,0.5)
-        fig1.savefig(fig_dir + '/'+biomass+'_HBWat.png',dpi=fig1.dpi)
-        
-        fig2, ax2 = plt.subplots()
-        ax2.set_ylabel(r'#HBs with the organic solvent')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbs_avg),ax=ax2)
-        change_width(ax2,0.5)
-        fig2.savefig(fig_dir + '/'+biomass+'_HBOrg.png',dpi=fig2.dpi)
-        
-        fig3, ax3 = plt.subplots()
-        ax3.set_ylabel(r'$\langle$ #HB (Total) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbt_avg),ax=ax3)
-        change_width(ax3,0.5)
-        fig3.savefig(fig_dir + '/'+biomass+'_HBTot.png',dpi=fig3.dpi)
-
-        plt.close(fig1); plt.close(fig2); plt.close(fig3)
-        # Save average data        
-        if hbonds == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
-                hbt = yhbt_avg[indx]
-                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
-                                                     hbw,hbs,hbt))
-    if hbonds == 2:
-        fc_hb.close()
-        df=pd.read_table(hbc_fyl)
-        maxval = df['HB_Tot'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="HB_Tot",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #HB (Total) $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHBTot.png',dpi=figa.dpi)
-
-        maxval = df['HB_Wat'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="HB_Wat",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #Water-HB $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHBWat.png',dpi=figa.dpi)
-
-        maxval = df['HB_Sol'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="HB_Sol",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #HBs with the Organic Solvent $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.set_xlabel('')
-        plt.minorticks_on()
-        axa.tick_params(axis='x', which='minor', bottom=False)
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHBOsol.png',dpi=figa.dpi)
-#------------------------------------------------------------------
-
-# Plot beta-O-4 hydrogen bonds with water and solvent
-if hb_bo4 != 0:
-
-    print("Analyzing beta-O-4 hydrogen bonds data")
-
-    if hb_bo4 == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        hbc_fyl = consol_dir + '/hb_bo4.dat'
-        fc_hb = open(hbc_fyl,'w')
-        fc_hb.write('%s\t%s\t%s\t%s\t%s\n' %('Biomass','Solvent',\
-                                             'HB_BWat','HB_BSol',\
-                                             'HB_BTot'))
-   
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yhbw_avg = np.zeros(0); yhbs_avg = np.zeros(0)
-        yhbt_avg = np.zeros(0)
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            y_wavg = 0; y_savg = 0; y_tavg = 0
-            n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'hbfiles',solv_type)
-
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-
-                # Check file(s) for water hbond
-                if glob.glob(anadir + '/wat_hbbo4?.xvg') != []:
-                    fwat_list = glob.glob(anadir + '/wat_hbbo4?.xvg')
-                elif glob.glob(wdir + '/wat_hbbo4?.xvg') != []:
-                    fwat_list = glob.glob(wdir + '/wat_hbbo4?.xvg')
-                else:
-                    print("wat_hbbo4 does not exist!")
-                    continue
-
-                for fname in fwat_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-wat
-                    y_wavg += np.sum(data[:,1]); n_wfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1]); n_tfyl += data[:,1].size
-                    
-                # Check file(s) for solvent hbond
-                if glob.glob(anadir + '/sol_hbbo4?.xvg') != []:
-                    fsol_list = glob.glob(anadir + '/sol_hbbo4?.xvg')
-                elif glob.glob(wdir + '/sol_hbbo4?.xvg') != []:
-                    fsol_list = glob.glob(wdir + '/sol_hbbo4?.xvg')
-                else:
-                    print("sol_hbbo4 does not exist!")
-                    continue
-
-
-                for fname in fsol_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-solv
-                    y_savg += np.sum(data[:,1]); n_sfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1])
-
-            # append avg to overall averages
-            if n_sfyl == 0 and y_savg == 0:
-                print("WARNING: NO SOLVENT FILES WERE FOUND")
-                yhbs_avg = np.append(yhbs_avg,0)
-            elif n_wfyl != n_sfyl: # Sanity check
-                print(n_wfyl,n_sfyl)
-                print('total HB for beta-O-4 cannot be defined')
-            else:
-                yhbs_avg = np.append(yhbs_avg,y_savg/n_sfyl)
-
-            yhbt_avg = np.append(yhbt_avg,y_tavg/n_tfyl)
-            yhbw_avg = np.append(yhbw_avg,y_wavg/n_wfyl)
-
-        # Plot averages
-        fig1, ax1 = plt.subplots()
-        ax1.set_ylabel(r'$\langle$ #HB ($\beta$-O-4 - Water) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        sns.barplot(otyp_arr,np.array(yhbw_avg),ax=ax1)
-        plt.tight_layout()
-        change_width(ax1,0.5)
-        fig1.savefig(fig_dir + '/'+biomass+'_HBbo4Wat.png',dpi=fig1.dpi)
-               
-        if not all(ysv == 0 for ysv in yhbs_avg):
-            fig2, ax2 = plt.subplots()
-            ax2.set_ylabel(r'$\langle$ #HB ($\beta$-O-4 - Org. Solv.) $\rangle$')
-            plt.style.use('seaborn-colorblind')
-            sns.barplot(otyp_arr,np.array(yhbs_avg),ax=ax2)
-            plt.tight_layout()
-            change_width(ax2,0.5)
-            fig2.savefig(fig_dir + '/'+biomass+'_HBbo4Org.png',dpi=fig2.dpi)
-            plt.close(fig2)
-
-        fig3, ax3 = plt.subplots()
-        ax3.set_ylabel(r'$\langle$ #HB ($\beta$-O-4 - Total) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        sns.barplot(otyp_arr,np.array(yhbt_avg),ax=ax3)
-        plt.tight_layout()
-        change_width(ax3,0.5)
-        fig3.savefig(fig_dir + '/'+biomass+'_HBbo4Tot.png',dpi=fig3.dpi)
-
-        plt.close(fig1); plt.close(fig3)        
-        # Save average data
-        if hb_bo4 == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
-                hbt = yhbt_avg[indx]
-                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
-                                                     hbw,hbs,hbt))
-    if hb_bo4 == 2:
-        fc_hb.close()
-        df=pd.read_table(hbc_fyl)
-        maxval = df['HB_BTot'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        sns.barplot(x="Biomass",y="HB_BTot",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #HB ($\beta$-O-4) $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        plt.tight_layout()
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHB_bo4Tot.png',dpi=figa.dpi)
-        plt.close(figa)
-#------------------------------------------------------------------
-
-# Plot syringyl hydrogen bonds with water and solvent
-if hb_syr != 0:
-
-    print("Analyzing hydrogen bonds with SYR monomers")
-
-    if hb_syr == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        hbc_fyl = consol_dir + '/hb_syr.dat'
-        fc_hb = open(hbc_fyl,'w')
-        fc_hb.write('%s\t%s\t%s\t%s\t%s\n' %('Biomass','Solvent',\
-                                             'HB_SWat','HB_SSol',\
-                                             'HB_STot'))
-   
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yhbw_avg = np.zeros(0); yhbs_avg = np.zeros(0)
-        yhbt_avg = np.zeros(0)
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents (SYR)
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            y_wavg = 0; y_savg = 0; y_tavg = 0
-            n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'hbfiles',solv_type)
-
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file(s) for SYR-water hbond
-                if glob.glob(anadir + '/wat_syrmon?.xvg') != []:
-                    fwat_list = glob.glob(anadir + '/wat_syrmon?.xvg')
-                elif glob.glob(wdir + '/wat_syrmon?.xvg') != []:
-                    fwat_list = glob.glob(wdir + '/wat_syrmon?.xvg')
-                else:
-                    print("wat_syrmon does not exist!")
-                    continue
-
-                for fname in fwat_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-wat
-                    y_wavg += np.sum(data[:,1]); n_wfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1]); n_tfyl += data[:,1].size
-                    
-                # Check file(s) for solvent hbond
-                if glob.glob(anadir + '/sol_syrmon?.xvg') != []:
-                    fsol_list = glob.glob(anadir + '/sol_syrmon?.xvg')
-                elif glob.glob(wdir + '/sol_syrmon?.xvg') != []:
-                    fsol_list = glob.glob(wdir + '/sol_syrmon?.xvg')
-                else:
-                    print("sol_syrmon does not exist!")
-                    continue
-
-                for fname in fsol_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-solv
-                    y_savg += np.sum(data[:,1]); n_sfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1])
-                
-                print(casenum, n_wfyl, n_sfyl)
-            # append avg to overall averages
-            if n_sfyl == 0 and y_savg == 0:
-                print("WARNING: NO SOLVENT FILES WERE FOUND")
-                yhbs_avg = np.append(yhbs_avg,0)
-            elif n_wfyl != n_sfyl: # Sanity check
-                print(n_wfyl,n_sfyl)
-                print('total HB for SYR cannot be defined')
-            else:
-                yhbs_avg = np.append(yhbs_avg,y_savg/n_sfyl)
-                
-            yhbt_avg = np.append(yhbt_avg,y_tavg/n_tfyl)
-            yhbw_avg = np.append(yhbw_avg,y_wavg/n_wfyl)
-
-
-        # Plot averages
-        fig1, ax1 = plt.subplots()
-        ax1.set_ylabel(r'$\langle$ #HB (SYR-Water) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbw_avg),ax=ax1)
-        change_width(ax1,0.5)
-        fig1.savefig(fig_dir + '/'+biomass+'_HBSyrWat.png',dpi=fig1.dpi)
-
-        if not all(ysv == 0 for ysv in yhbs_avg):        
-            fig2, ax2 = plt.subplots()
-            ax2.set_ylabel(r'$\langle$ #HB (SYR-Org. Solv.) $\rangle$')
-            plt.style.use('seaborn-colorblind')
-            plt.tight_layout()
-            sns.barplot(otyp_arr,np.array(yhbs_avg),ax=ax2)
-            change_width(ax2,0.5)
-            fig2.savefig(fig_dir + '/'+biomass+'_HBSyrOrg.png',dpi=fig2.dpi)
-            plt.close(fig2)        
-
-        fig3, ax3 = plt.subplots()
-        ax3.set_ylabel(r'$\langle$ #HB (SYR-Total) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbt_avg),ax=ax3)
-        change_width(ax3,0.5)
-        fig3.savefig(fig_dir + '/'+biomass+'_HBSyrTot.png',dpi=fig3.dpi)
-        plt.close(fig1); plt.close(fig3)        
-
-        # Save average data        
-        if hb_syr == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
-                hbt = yhbt_avg[indx]
-                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
-                                                     hbw,hbs,hbt))
-    if hb_syr == 2:
-        fc_hb.close()
-        df=pd.read_table(hbc_fyl)
-        maxval = df['HB_STot'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="HB_STot",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #HB (SYR) $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHB_SyrTot.png',dpi=figa.dpi)
-        plt.close(figa)
-#------------------------------------------------------------------
-
-# Plot guaicyl hydrogen bonds with water and solvent
-if hb_gua != 0:
-
-    print("Analyzing hydrogen bonds with GUA monomers")
-
-    if hb_gua == 2: # plot all averages together
-        consol_dir = scr_dir + '/' + inp_type + '/consolidated'
-        if not os.path.isdir(consol_dir):
-            os.mkdir(consol_dir)
-
-        # Write data and then read to concatenate
-        hbc_fyl = consol_dir + '/hb_gua.dat'
-        fc_hb = open(hbc_fyl,'w')
-        fc_hb.write('%s\t%s\t%s\t%s\t%s\n' %('Biomass','Solvent',\
-                                             'HB_GWat','HB_GSol',\
-                                             'HB_GTot'))
-   
-    for bio_indx in range(len(biom_arr)): # loop in biomass
-        biomass = biom_arr[bio_indx]
-        yhbw_avg = np.zeros(0); yhbs_avg = np.zeros(0)
-        yhbt_avg = np.zeros(0)
-
-        for sol_indx in range(len(otyp_arr)): # loop in solvents (SYR)
-            solv_type = otyp_arr[sol_indx]
-            solv_leg  = otyp_leg[sol_indx]
-            y_wavg = 0; y_savg = 0; y_tavg = 0
-            n_wfyl = 0; n_sfyl = 0; n_tfyl = 0
-
-            for casenum in range(len(run_arr)): # loop in runarr
-                wdir,anadir,fig_dir = ret_ana_dir(scr_dir,inp_type,biomass,\
-                                                  disperse,run_arr[casenum],\
-                                                  'hbfiles',solv_type)
-
-                print("Analyzing: ", biomass,solv_type,run_arr[casenum])
-                # Check file(s) for GUA-water hbond
-                if glob.glob(anadir + '/wat_guamon?.xvg') != []:
-                    fwat_list = glob.glob(anadir + '/wat_guamon?.xvg')
-                elif glob.glob(wdir + '/wat_guamon?.xvg') != []:
-                    fwat_list = glob.glob(wdir + '/wat_guamon?.xvg')
-                else:
-                    print("wat_guamon does not exist!")
-                    exist
-
-                for fname in fwat_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-wat
-                    y_wavg += np.sum(data[:,1]); n_wfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1]); n_tfyl += data[:,1].size
-                    
-                # Check file(s) for solvent hbond
-                if glob.glob(anadir + '/sol_guamon?.xvg') != []:
-                    fsol_list = glob.glob(anadir + '/sol_syrmon?.xvg')
-                elif glob.glob(wdir + '/sol_guamon?.xvg') != []:
-                    fsol_list = glob.glob(wdir + '/sol_guamon?.xvg')
-                else:
-                    print("sol_guamon does not exist!")
-                    continue
-
-
-                for fname in fsol_list:
-                    # Open and parse file
-                    with open(fname) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-
-                    #append all hb-solv
-                    y_savg += np.sum(data[:,1]); n_sfyl += data[:,1].size
-                    y_tavg += np.sum(data[:,1])
-
-                    
-            # append avg to overall averages
-            if n_sfyl == 0 and y_savg == 0:
-                print("WARNING: NO SOLVENT FILES WERE FOUND")
-                yhbs_avg = np.append(yhbs_avg,0)
-            elif n_wfyl != n_sfyl: # Sanity check
-                print(n_wfyl,n_sfyl)
-                print('total HB for GUA cannot be defined')
-            else:
-                yhbs_avg = np.append(yhbs_avg,y_savg/n_sfyl)
-                
-            yhbt_avg = np.append(yhbt_avg,y_tavg/n_tfyl)
-            yhbw_avg = np.append(yhbw_avg,y_wavg/n_wfyl)
-
-        # Plot averages
-        fig1, ax1 = plt.subplots()
-        ax1.set_ylabel(r'$\langle$ #HB (GUA-Water) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbw_avg),ax=ax1)
-        change_width(ax1,0.5)
-        fig1.savefig(fig_dir + '/'+biomass+'_HBGuaWat.png',dpi=fig1.dpi)
-        
-        if not all(ysv == 0 for ysv in yhbs_avg):        
-            fig2, ax2 = plt.subplots()
-            ax2.set_ylabel(r'$\langle$ #HB (GUA-Org. Solv.) $\rangle$')
-            plt.style.use('seaborn-colorblind')
-            plt.tight_layout()
-            sns.barplot(otyp_arr,np.array(yhbs_avg),ax=ax2)
-            change_width(ax2,0.5)
-            fig2.savefig(fig_dir + '/'+biomass+'_HBGuaOrg.png',dpi=fig2.dpi)
-            plt.close(fig2)
-
-        fig3, ax3 = plt.subplots()
-        ax3.set_ylabel(r'$\langle$ #HB (GUA-Total) $\rangle$')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(otyp_arr,np.array(yhbt_avg),ax=ax3)
-        change_width(ax3,0.5)
-        fig3.savefig(fig_dir + '/'+biomass+'_HBGuaTot.png',dpi=fig3.dpi)
-        plt.close(fig1); plt.close(fig3)        
-
-        # Save average data        
-        if hb_gua == 2:
-            for indx in range(len(otyp_arr)): # loop in solvents
-                solv_type = otyp_arr[indx]
-                solv_leg  = otyp_leg[indx]
-                hbw = yhbw_avg[indx]; hbs = yhbs_avg[indx]
-                hbt = yhbt_avg[indx]
-                fc_hb.write('%s\t%s\t%g\t%g\t%g\n' %(biomass,solv_leg,\
-                                                     hbw,hbs,hbt))
-    if hb_gua == 2:
-        fc_hb.close()
-        df=pd.read_table(hbc_fyl)
-        maxval = df['HB_GTot'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        sns.barplot(x="Biomass",y="HB_GTot",hue="Solvent",data=df,\
-                    ax=axa)
-        axa.set_ylabel(r'$\langle$ #HB (GUA) $\rangle$')
-        axa.set_ylim([0,1.2*maxval])
-        axa.legend(loc=0,ncol = len(axa.lines))
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'AllHB_GuaTot.png',dpi=figa.dpi)
-        plt.close(figa)
 #------------------------------------------------------------------
