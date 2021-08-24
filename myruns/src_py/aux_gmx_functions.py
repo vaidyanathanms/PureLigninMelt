@@ -20,8 +20,7 @@ def gencpy(dum_maindir,dum_destdir,fylname):
     srcfyl = dum_maindir + '/' + fylname
 
     if not os.path.exists(srcfyl):
-        print('ERROR: ', srcfyl, 'not found')
-        return
+        raise RuntimeError('ERROR: ' + srcfyl + ' not found')
 
     desfyl = dum_destdir + '/' + fylname
     shutil.copy2(srcfyl,desfyl)
@@ -206,8 +205,8 @@ def create_anagrps_inp(destdir,monlist,atomlist,nchains):
     frglist.close()        
 #------------------------------------------------------------------    
 # Run analysis
-def run_analysis(nchains,rgflag,msdflag,rdfflag,headdir,destdir,\
-                 trajfile,tprfile,conffile,temp):
+def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,headdir,\
+                 destdir,trajfile,tprfile,conffile,temp):
 
     if rgflag:
         fname = 'rgcomp_pyinp.sh'
@@ -218,13 +217,16 @@ def run_analysis(nchains,rgflag,msdflag,rdfflag,headdir,destdir,\
     if rdfflag:
         fname = 'rdfcomp_pyinp.sh'
         replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'rdf')
+    if segrgflag:
+        fname = 'segment_rgcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'segment_rgcomp_pyinp')
 #--------------------------------------------------------------------
 
 # Replace strings in job files
 def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
 
     if not os.path.exists(headdir + '/' + fname):
-        raise RunTimeError(fname + ' not found in ' +headdir)
+        raise RuntimeError(fname + ' not found in ' +headdir)
 
     jobname  = anastr + '_T_' + str(temp)
     trajfile = split_and_return_filename(trajfile)
@@ -250,4 +252,9 @@ def split_and_return_filename(inp_fylename):
 
     outstr = inp_fylename.split('/')
     return outstr[len(outstr)-1]
+#--------------------------------------------------------------------
+
+# if __name__ 
+if __name__ == 'main':
+   main()
 #--------------------------------------------------------------------
