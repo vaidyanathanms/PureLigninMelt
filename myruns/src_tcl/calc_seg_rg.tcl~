@@ -1,0 +1,43 @@
+# Compute segmental Rg
+set name system 
+mol load psf $name.psf # you can also use a PDB
+mol addfile py_traj waitfor all 
+
+set num_frames [ molinfo top  get numframes]
+set num_min    0 
+set chid  py_chainid ;# set chain ID
+set nmons py_nmons ;# number of monomers/chain
+set ninit py_start ;# starting residue
+set Ntot [ expr $ninit + $nmons - 1 ]
+
+for {set n $ninit} {$n < $Ntot } { inc n} {
+    for {set m [ expr $n + 1 ] } {$m <= $Ntot } { inc m } { 
+	set sel [atomselect top "resid $n to $m" ] 
+	for {set i $num_min } { $i <= $num_frames  } { incr i } {
+	    $sel frame $i
+	    $sel update
+	    set d [measure rgyr $sel ]
+	    set separation [  expr abs ( $n - $m) ]
+	    lappend N_$separation $d
+	    unset d
+	    unset separation 
+	}
+	unset sel
+    }
+    puts "finished residue $n"
+}
+mol delete top
+
+
+for { set l 1 } { $l < $Ntot } { incr l } {
+    set var  N_$l
+    set var2 [ expr $$var]
+    set mean  [ expr [vecmean $var2] ]
+    set c [expr $Ntot-$l] 
+    set stdev [ expr [ vecstddev $var2]/$c ] ;# set stdev22 [llength $var2]
+    set fp [open "RgvsN_$chid.dat" a]
+    puts $fp " chain ID: $chid  nmons: $nmons "
+    puts $fp " $l $mean $stdev "
+    close $fp
+}
+
