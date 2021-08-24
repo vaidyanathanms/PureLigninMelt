@@ -28,19 +28,20 @@ else:
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc   = 1 # Calculate rg
-msd_calc  = 0 # Calculate msd
-rdf_calc  = 0 # Calculate rdf
-
+rg_calc    = 1 # Calculate rg
+seg_rgcalc = 1 # Calculate segmental rg
+msd_calc   = 0 # Calculate msd
+rdf_calc   = 0 # Calculate rdf
+#------------------------------------------------------------------
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [3.0]
-run_arr   = [6] # number of independent runs for a given biomass
-temp_min  = 360 # Minimum temperature
-temp_max  = 501 # Maximum temperature (< max; add +1 to desired)
+disp_arr  = [1.0]
+run_arr   = [3] # number of independent runs for a given biomass
+temp_min  = 300 # Minimum temperature
+temp_max  = 461 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 20  # Temperature dt
 npoly_res = 22  # number of polymer residues
 nchains   = 20  # Number of chains - cross check from conf file
@@ -52,7 +53,8 @@ o_sol_typ = 'None' # add this later
 
 # Directory Paths
 main_dir  = os.getcwd() # current dir
-gmx_dir   = '../src_gmx' # gmx file super directory
+gmx_dir   = '/home/v0e/allcodes/files_lignin/pure_melts/myruns/src_gmx' # gmx dir
+tcl_dir   = '/home/v0e/allcodes/files_lignin/pure_melts/myruns/src_tcl' # tcl dir
 top_dir   = gmx_dir + '/solv_files/topol' # topology dir
 cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
 itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
@@ -121,7 +123,7 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 continue
 
             create_anagrps_inp(temp_dir,mon_list,at_list,nchains)
-            run_analysis(nchains,rg_calc,msd_calc,rdf_calc,sh_dir,\
+            run_analysis(nchains,rg_calc,msd_calc,rdf_calc,seg_rgcalc,sh_dir,\
                          temp_dir,trajfile,tprfile,conffile,curr_temp)
 
             os.chdir(temp_dir)
@@ -129,6 +131,10 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 if rg_calc:
                     print("Running Rg calculation")
                     subprocess.call(["sbatch","rgcomp.sh"])
+                if seg_rgcalc:
+                    print("Running segmental Rg calculation")
+                    gencpy(tcl_dir,temp_dir,'calc_seg_rg.tcl')
+                    subprocess.call(["sbatch","segment_rgcomp.sh"])
                 if msd_calc:
                     print("Running MSD calculation")
                     subprocess.call(["sbatch","msdcomp.sh"])
