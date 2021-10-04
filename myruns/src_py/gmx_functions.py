@@ -17,20 +17,12 @@ from aux_gmx_functions import * # function definitions
 # Version Info and parse input conditions
 print("Generating GROMACS analysis inputs")
 print("Version: May-11-2021")
-if len(sys.argv) == 1:
-    coeff_fyle = 'None' 
-elif len(sys.argv) == 2:
-    coeff_fyle = str(sys.argv[1])
-else:
-    print('Unknown number of arguments: ', len(sys.argv),\
-          str(sys.argv))
-    exit()
 #------------------------------------------------------------------
 
 # Input Keys
 rg_calc    = 1 # Calculate rg
 seg_rgcalc = 1 # Calculate segmental rg
-msd_calc   = 0 # Calculate msd
+msd_calc   = 1 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 #------------------------------------------------------------------
 
@@ -38,14 +30,12 @@ rdf_calc   = 0 # Calculate rdf
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0]
-run_arr   = [3] # number of independent runs for a given biomass
-temp_min  = 300 # Minimum temperature
-temp_max  = 461 # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 20  # Temperature dt
-npoly_res = 22  # number of polymer residues
-nchains   = 20  # Number of chains - cross check from conf file
-box_dim   = 15  # Initial box size
+disp_arr  = [3.0]# dispersity values
+run_arr   = [6]  # run number for a given dispersity
+temp_min  = 300  # Minimum temperature
+temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
+temp_dt   = 20   # Temperature dt
+nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
 wat_name  = 'None' # add this later
 o_sol_typ = 'None' # add this later
@@ -55,10 +45,6 @@ o_sol_typ = 'None' # add this later
 main_dir  = os.getcwd() # current dir
 gmx_dir   = '/home/v0e/allcodes/files_lignin/pure_melts/myruns/src_gmx' # gmx dir
 tcl_dir   = '/home/v0e/allcodes/files_lignin/pure_melts/myruns/src_tcl' # tcl dir
-top_dir   = gmx_dir + '/solv_files/topol' # topology dir
-cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
-itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
-mdp_dir   = gmx_dir + '/' + 'mdp_files' # mdp file dir
 sh_dir    = gmx_dir + '/' + 'sh_files' # sh file dir
 scr_dir   = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
 #------------------------------------------------------------------
@@ -69,10 +55,6 @@ if not os.path.isdir(scr_dir):
 scr_dir  = scr_dir + '/Glassy_lignin'
 if not os.path.isdir(scr_dir):
     os.mkdir(scr_dir)
-#------------------------------------------------------------------
-
-#Required GMX/sh and default gro/top files
-def_inicon = 'initconf.gro'
 #------------------------------------------------------------------
 
 # Main code
