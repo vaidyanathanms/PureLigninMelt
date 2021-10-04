@@ -30,14 +30,15 @@ else:
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
+gpu       = 0 # 0-no gpu, 1 - gpu
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]
-run_arr   = [7] # number of independent runs for a given biomass
+run_arr   = [1] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 600 # Minimum temperature
-temp_max  = 601 # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 10  # Temperature dt
+temp_min  = 310 # Minimum temperature
+temp_max  = 331 # Maximum temperature (< max; add +1 to desired)
+temp_dt   = 20  # Temperature dt
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
 solv_name = 'None' # add this later
@@ -53,7 +54,7 @@ cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
 itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
 mdp_dir   = gmx_dir + '/' + 'mdp_files' # mdp file dir
 sh_dir    = gmx_dir + '/' + 'sh_files' # sh file dir
-scr_dir   = '/gpfs/alpine/bip189/scratch/vaidyams' # scratch dir
+scr_dir   = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
 
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
@@ -66,8 +67,13 @@ if not os.path.isdir(scr_dir):
 # Required GMX/sh and default gro/top files
 mdp_fyles  = ['minim_pyinp.mdp','nvt_pyinp.mdp','nvt_high_pyinp.mdp',\
               'npt_berendsen_pyinp.mdp','npt_main_pyinp.mdp']
-sh_md_fyle = 'run_md_pyinp.sh'
-sh_pp_fyle = 'run_preprocess_pyinp.sh'
+if gpu:
+    sh_md_fyle = 'run_md_gpu_pyinp.sh'
+    sh_pp_fyle = 'run_preprocess_gpu_pyinp.sh'
+else:
+    sh_md_fyle = 'run_md_pyinp.sh'
+    sh_pp_fyle = 'run_preprocess_pyinp.sh'
+    
 sh_rep_fyl = ['repeat_all.sh','repeat_md.sh']
 def_inicon = 'initconf.gro'
 #------------------------------------------------------------------
@@ -106,11 +112,12 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         
         # set main working directory and check input files are present
         workdir1 = set_working_dir(rundir,inp_type,o_sol_typ)
-        poly_conffile,poly_topfile=check_inp_files(workdir1,\
-                                                   'None')
 
         # Loop over required temperature range
         for curr_temp in range(temp_min,temp_max,temp_dt):           
+
+            poly_conffile,poly_topfile=check_inp_files(workdir1,\
+                                                       'None')
 
             show_initial_log(biomass,o_sol_typ,disp_arr[disp_val],\
                              run_arr[casenum],curr_temp)
@@ -162,8 +169,8 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             # Copy all shell script for running
             for fsh_name in sh_rep_fyl:
-                if not os.path.exists(temp_dir + '/' + fsh_name):
-                    gencpy(sh_dir,temp_dir,fsh_name)
+                #if not os.path.exists(temp_dir + '/' + fsh_name):
+                gencpy(sh_dir,temp_dir,fsh_name) #copy always
 
             # Change to working directory
             os.chdir(temp_dir)
