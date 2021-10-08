@@ -33,11 +33,11 @@ run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 gpu       = 0 # 0-no gpu, 1 - gpu
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0]
-run_arr   = [2,3] # number of independent runs for a given biomass
+disp_arr  = [3.0]
+run_arr   = [1,6] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 405 # Minimum temperature
-temp_max  = 431 # Maximum temperature (< max; add +1 to desired)
+temp_min  = 250 # Minimum temperature
+temp_max  = 601 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10  # Temperature dt
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
@@ -194,17 +194,20 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 if inp_type == 'melts':
                     edit_pp_files(biomass,inp_type,poly_conffile,0,0,\
                                   poly_topedit,'None','None',sh_pp_fyle\
-                                  ,ff_dir,'None',0,indx_fyle,curr_temp)
+                                  ,ff_dir,'None',0,indx_fyle,curr_temp,\
+                                  disp_arr[disp_val],run_arr[casenum])
                 elif inp_type == 'solvents':
                     edit_pp_files(biomass,inp_type,poly_conffile,n_orgsolv\
                                   ,0,poly_topedit,o_sol_typ,'None',\
                                   sh_pp_fyle,ff_dir,sol_cfg,box_dim,\
-                                  indx_fyle,curr_temp)
+                                  indx_fyle,curr_temp,disp_arr[disp_val]\
+                                  ,run_arr[casenum])
                 elif inp_type == 'cosolvents':
                     edit_pp_files(biomass,inp_type,poly_conffile,n_orgsolv\
                                   ,nwater,poly_topedit,o_sol_typ,wat_type,\
                                   sh_pp_fyle,ff_dir,sol_cfg,box_dim,\
-                                  indx_fyle,curr_temp)
+                                  indx_fyle,curr_temp,disp_arr[disp_val],\
+                                  run_arr[casenum])
             else: # check for initconf.gro
                 if os.path.exists(def_inicon):
                     poly_conffile = def_inicon
@@ -214,7 +217,8 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             # Edit run_md shell script files always
             edit_md_files(biomass,inp_type,poly_conffile,poly_topedit,\
-                          o_sol_typ,sh_md_fyle,indx_fyle,curr_temp)
+                          o_sol_typ,sh_md_fyle,indx_fyle,curr_temp,\
+                          disp_arr[disp_val],run_arr[casenum])
 
             # Submit preprocess job
             if run_all:

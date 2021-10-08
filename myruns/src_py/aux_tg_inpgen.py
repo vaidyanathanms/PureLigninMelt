@@ -420,7 +420,7 @@ def edit_main_top_file(main_topfyle,ff,top_arr,itp_arr,workdir):
 # Edit pre-processing shell script files
 def edit_pp_files(biomass,inp_type,polycfg,nsolv,nwater,\
                   topfyle,o_sol_type,wat_typ,pp_fyle,ffdir,\
-                  solcfg,dim,indx_fyle,tempval):
+                  solcfg,dim,indx_fyle,tempval,pdival,runval):
 
     # use the last element (others correspond to full path)
     # underscored variable corresponds to split file name
@@ -434,7 +434,8 @@ def edit_pp_files(biomass,inp_type,polycfg,nsolv,nwater,\
         dval = 0.2 # after first set of relaxation
 
     # job/box name
-    jname = 'pp_'+ biomass + '_T_' + str(tempval)
+    jname = 'pp_'+'P' + str(pdival)+'_R'+str(runval)+\
+            '_T' + str(tempval)
     if inp_type == 'solvents' or inp_type == 'cosolvents':
         jname = jname + '_' + o_sol_type #py_jobname
         box_conffyle = "boxedit_" + poly_cfg
@@ -504,7 +505,7 @@ def ret_file_str(inpstr):
 
 # Edit run_md.sh file all times
 def edit_md_files(biomass,inp_type,polycfg,topfyle,o_sol_type\
-                  ,md_fyle,indx_fyle,tempval):
+                  ,md_fyle,indx_fyle,tempval,pdival,runval):
 
     # use the last element (others correspond to full path)
     # underscored variable corresponds to split file name
@@ -513,7 +514,8 @@ def edit_md_files(biomass,inp_type,polycfg,topfyle,o_sol_type\
 
     # edit run_md_file ALWAYS
     # job/box name
-    jname = 'md_'+ biomass + '_T_' + str(tempval)
+    jname = 'md_'+'P' + str(pdival)+'_R'+str(runval)+\
+            '_T' + str(tempval)
     if inp_type == 'solvents' or inp_type == 'cosolvents':
         jname = jname + '_' + o_sol_type #py_jobname
 
