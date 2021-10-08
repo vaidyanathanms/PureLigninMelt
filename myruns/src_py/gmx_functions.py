@@ -21,8 +21,8 @@ print("Version: May-11-2021")
 
 # Input Keys
 rg_calc    = 1 # Calculate rg
-seg_rgcalc = 1 # Calculate segmental rg
-msd_calc   = 1 # Calculate msd
+seg_rgcalc = 0 # Calculate segmental rg
+msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 #------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ rdf_calc   = 0 # Calculate rdf
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [3.0]# dispersity values
-run_arr   = [6]  # run number for a given dispersity
+disp_arr  = [1.8]# dispersity values
+run_arr   = [1]  # run number for a given dispersity
 temp_min  = 300  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 20   # Temperature dt
