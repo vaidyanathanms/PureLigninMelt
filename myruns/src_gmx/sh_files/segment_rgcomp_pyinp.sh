@@ -11,6 +11,8 @@
 #SBATCH -o outdir/out.%J
 #SBATCH -e outdir/err.%J
 
+module load PE-gnu/3.0
+module load cuda/10.1
 module load gromacs/2020.6
 module load vmd
 
@@ -25,10 +27,18 @@ echo $PWD
 rgout="traj_npt_main.trr"; outdir="rganalysis"
 nchains=py_nchains
 
-if ! test -f "traj_npt_main.trr"; then
-    printf "traj_npt_main.trr not found"
+
+if [ ! test -f "enermin.tpr"] && [ ! test -f "traj_npt_main_nojump_100ps.trr"]; then
+    printf "tpr/trr files not found"
     exit 1
-elif ! test -f "../init_files/L.psf"; then
+fi
+
+if ! test -f "traj_npt_main_nojump_100ps.trr"; then
+    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+wait
+fi
+
+if ! test -f "../init_files/L.psf"; then
     printf "psf file not found"
     exit 1
 fi
@@ -44,6 +54,7 @@ wait
 
 vmd -dispdev text -e calc_seg_rg.tcl
 
+mv rg_allsegs.dat ${outdir}
 mv RgvsN.dat ${outdir}
 
 printf "End of segmental Rg calculations.."
