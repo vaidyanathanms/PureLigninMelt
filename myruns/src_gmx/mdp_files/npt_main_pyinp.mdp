@@ -1,11 +1,7 @@
 title                   = Ligninmelt_NPT_Equil_smalltstep ; Title 
 ; Run parameters
 integrator              = md        ; leap-frog integrator
-<<<<<<< HEAD
 nsteps                  = 200000000 ; 2 * 200000000 fs = 400 ns
-=======
-nsteps                  = 100000000 ; 2 * 100000000 fs = 200 ns
->>>>>>> origin/master
 dt                      = 0.002     ; 2 fs
 ; Output control
 nstxout                 = 5000      ; save coordinates every 10.0 ps
