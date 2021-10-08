@@ -2,4 +2,6 @@
 /shalini
 /geninit_config
 myruns/src_py/aux_gmx_functions.pyc
+myruns/src_py/*.pyc
+myruns/src_py/*~
 /shalini
