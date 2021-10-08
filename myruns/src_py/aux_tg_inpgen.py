@@ -133,7 +133,30 @@ def check_inp_files(dum_inpdir,top_name):
     return conf_fname, topol_fname
 #------------------------------------------------------------------
 
-# Copy polyconf/polytop for this casenum to sub-T_temp dirs
+# Find high temperature equilibrated file for sub-high_T systems
+def find_hightemp_conf(workdir1,high_temp):
+
+    hi_T_dir = workdir1 + '/T_'+str(high_temp)
+    if not os.path.isdir(hi_T_dir):
+        print("WARNING: Could not find high temperature directory at T= " + \
+              str(high_temp) + "\n This is required for low temperature simulations." + \
+              "\n Using default configuration.\n")
+        return 'none'
+
+    hiT_conf_files = glob.glob(hi_T_dir + '/*.gro')
+    if hiT_conf_files == []:
+        print("WARNING: Could not find any gro files for high temperature; T= " + \
+              str(high_temp) + "\n This is required for low temperature simulations." + \
+              "\n Using default configuration.\n")
+        return 'none'
+        
+    conf_fname = max(hiT_conf_files, key=os.path.getctime)
+    poly_conf = ret_file_str(conf_fname)
+    gencpy(hi_T_dir,workdir1,poly_conf) #copy to head directory
+    return conf_fname #return full path
+#------------------------------------------------------------------
+
+# Copy polyconf/polytop for this for this temp from main workdir
 def cpy_polyfiles_to_tempdir(poly_conffile,poly_topfile,workdir1,\
                              temp_dir):
     poly_conf = ret_file_str(poly_conffile)

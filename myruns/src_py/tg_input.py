@@ -33,12 +33,12 @@ run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 gpu       = 0 # 0-no gpu, 1 - gpu
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.8]
-run_arr   = [1] # number of independent runs for a given biomass
+disp_arr  = [1.0]
+run_arr   = [2,3] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 310 # Minimum temperature
-temp_max  = 331 # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 20  # Temperature dt
+temp_min  = 405 # Minimum temperature
+temp_max  = 431 # Maximum temperature (< max; add +1 to desired)
+temp_dt   = 10  # Temperature dt
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
 solv_name = 'None' # add this later
@@ -116,8 +116,7 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         # Loop over required temperature range
         for curr_temp in range(temp_min,temp_max,temp_dt):           
 
-            poly_conffile,poly_topfile=check_inp_files(workdir1,\
-                                                       'None')
+            poly_conffile,poly_topfile=check_inp_files(workdir1,'None')
 
             show_initial_log(biomass,o_sol_typ,disp_arr[disp_val],\
                              run_arr[casenum],curr_temp)
@@ -182,9 +181,16 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             # Edit pre-processing shell script files iff cont_run = 0
             if cont_run == 0: 
-                # Copy polyconf/polytop for this casenum to sub-T_temp dir    
+                # Copy polyconf/polytop for this casenum to sub-high_T dir    
+                if curr_temp != high_temp: #for sub-high_T systems
+                    new_conffile = find_hightemp_conf(workdir1,high_temp)
+                    if new_conffile != 'none':
+                        poly_conffile = new_conffile
+                    
+                #copy main polyconf file for high temperature and file from high temp sys for sub-high_T
                 cpy_polyfiles_to_tempdir(poly_conffile,poly_topfile,workdir1,\
                                          temp_dir)
+      
                 if inp_type == 'melts':
                     edit_pp_files(biomass,inp_type,poly_conffile,0,0,\
                                   poly_topedit,'None','None',sh_pp_fyle\
