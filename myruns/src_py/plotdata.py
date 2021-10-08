@@ -51,6 +51,7 @@ nchains   = 20
 rg_cal = 2 # avg rg and rg distribution
 tg_cal = 0 # plot specific volume for tg
 rdf_pol = 0
+seg_rg  = 0 # plot segmental radius of gyration
 #------------------------------------------------------------------
 
 # Directory paths
@@ -214,6 +215,150 @@ if rg_cal != 0:
             fall_rg = open(rg_fyl,'w')
             fall_rg.write('%s\t%s\t%s\t%s\n' \
                         %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
+
+        # Define axes labels for plotting Rg distribution
+        fig1,ax1 = plt.subplots()
+        ax1.set_xlabel(r'$R_{g}$' ' (nm)')
+        ax1.set_ylabel('Probability')
+        plt.style.use('seaborn-colorblind')
+        plt.tight_layout()
+
+        for tval in range(temp_min,temp_max,temp_dt): # loop in temp
+            temp_leg  = str(tval)
+            rgall = np.zeros(0)
+            yrg_avg = np.zeros(0)            
+            chain_rg2 = 0; chain_rg4 = 0
+
+            for casenum in range(len(run_arr)): # loop in runarr
+                wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
+                                                 pdi_val,run_arr[casenum],\
+                                                 tval,solv_type)
+
+                print("Analyzing: ", pdi_val,tval,run_arr[casenum])
+                # Check file
+                list_of_files = glob.glob(tdir + '/rganalysis/rg_nptmain_*.xvg')
+                if list_of_files == []:
+                    print("Rg files do not exist for ", tval)
+                    continue
+
+                if len(list_of_files) != nchains:
+                    print('ERR: Mismatch in number of analysis file and input',\
+                          nchains, len(list_of_files))
+                    print(list_of_files)
+                    continue
+                
+                mon_arr = ret_mons(tdir + '/rganalysis/chainlist.dat')
+                rg_case = res_dir + '/Rg_casenum_' + str(casenum)+ \
+                         '_T_' + str(tval) + '.dat'
+                fcase_rg = open(rg_case,'w')
+                fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
+                            %('ChainID','Nmons','<Rg^2>','<Rg^4>','Rg4/rg2^2'))
+
+                case_rg2 = 0; case_rg4 = 0
+                for fyle in list_of_files:
+                    chid = ret_chid(fyle)
+                    # Open and parse file
+                    with open(fyle) as fin:
+                        lines = (line.lstrip() for line in fin \
+                                 if not line.lstrip().startswith('#') and \
+                                 not line.lstrip().startswith('@'))
+                        data  = np.loadtxt(lines)
+                        l1 = int(0.2*len(data[:1]))
+                        l2 = len(data[:,1])
+                        rg2 = np.average(np.square(data[l1:l2,1]))
+                        rg4 = np.average(np.power(data[l1:l2,1],4))
+                        al =  rg4/(rg2*rg2)
+                        fcase_rg.write('%g\t%g\t%g\t%g\t%g\n' %(chid,int(mon_arr[chid]),rg2,rg4,al))
+
+                        case_rg2 += rg2
+                        case_rg4 += rg4
+                        rgall = np.append(rgall,data[l1:l2,1]) #append all rg-data
+                        
+                chain_rg2 += case_rg2/nchains
+                chain_rg4 += case_rg4/nchains
+
+            chain_rg2 /= len(run_arr)
+            chain_rg4 /= len(run_arr)
+            alpha = (chain_rg4)/(chain_rg2*chain_rg2)
+
+            if rg_cal == 2:
+                fall_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
+                                                   chain_rg4,alpha))
+
+            # plot histogram across all cases
+            sns.kdeplot(data=np.array(rgall),label=temp_leg,ax=ax1)
+
+        # Save histogram plot
+        ax1.legend(loc=0)
+        fig1.savefig(fig_dir + '/'+biomass+'_pdi_'+str(pdi_val)+\
+                     '_Rgdist.png',dpi=fig1.dpi)
+        plt.close(fig1)
+
+    if rg_cal == 2:
+        fall_rg.close()
+        df=pd.read_table(rg_fyl)
+
+        #Plot Rg^2 - T
+        maxval = df['<Rg^2>'].max()
+        figa, axa = plt.subplots()
+        plt.style.use('seaborn-colorblind')
+        plt.tight_layout()
+        axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
+        axa.set_ylabel(r'Temperature ($K$)')
+        axa.set_ylabel(r'$R_{g}^2$ ($nm^2$)')
+        change_width(axa,0.2)
+        figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
+                     dpi=figa.dpi)
+        plt.close(figa)
+
+        #Plot Rg^4 - T
+        maxval = df['<Rg^4>'].max()
+        figa, axa = plt.subplots()
+        plt.style.use('seaborn-colorblind')
+        plt.tight_layout()
+        axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
+        axa.set_ylabel(r'Temperature ($K$)')
+        axa.set_ylabel(r'$R_{g}^4$ ($nm^4$)')
+        change_width(axa,0.2)
+        figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
+                     dpi=figa.dpi)
+        plt.close(figa)
+
+        #Plot Alpha - T
+        maxval = df['Rg4/Rg2^2'].max()
+        figa, axa = plt.subplots()
+        plt.style.use('seaborn-colorblind')
+        plt.tight_layout()
+        axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
+        axa.set_ylabel(r'Temperature ($K$)')
+        axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
+        change_width(axa,0.2)
+        figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
+                     dpi=figa.dpi)
+        plt.close(figa)
+#------------------------------------------------------------------
+
+# Plot avg rg and rg distribution
+if seg_rg != 0:
+    print("Analyzing Segmental Rg data")
+
+    denarr = np.arange(temp_min,temp_max,3*temp_dt)
+    for bio_indx in range(len(biom_arr)): # loop in biomass
+
+        biomass = biom_arr[bio_indx]
+
+        if rg_cal == 2: # plot all averages together
+            
+            res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
+                      '/pdi_' + str(pdi_val) + '/results'
+            if not os.path.isdir(res_dir):
+                os.mkdir(res_dir)
+            
+            # Write data and then read to concatenate
+            rg_fyl = res_dir + '/segRgdata.dat'
+            fall_rg = open(rg_fyl,'w')
+            fall_rg.write('%s\t%s\t%s\t%s\n' \
+                        %('s','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
 
         # Define axes labels for plotting Rg distribution
         fig1,ax1 = plt.subplots()
