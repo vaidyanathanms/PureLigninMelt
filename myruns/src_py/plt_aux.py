@@ -178,6 +178,63 @@ def ret_mons(inpfyle):
             mon_arr.append(outstr[len(outstr)-2])
     return mon_arr
 #------------------------------------------------------------------
+# All Rg plots
+def plot_allrg(df,fig_dir,pdi_val):
+
+    #Plot Rg^2 - T
+    maxval = df['<Rg^2>'].max()
+    figa, axa = plt.subplots()
+    plt.style.use('seaborn-colorblind')
+    plt.tight_layout()
+    axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
+    axa.set_ylabel(r'Temperature ($K$)')
+    axa.set_ylabel(r'$R_{g}^2$ ($nm^2$)')
+    change_width(axa,0.2)
+    figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+    
+    #Plot Rg^4 - T
+    maxval = df['<Rg^4>'].max()
+    figa, axa = plt.subplots()
+    plt.style.use('seaborn-colorblind')
+    plt.tight_layout()
+    axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
+    axa.set_ylabel(r'Temperature ($K$)')
+    axa.set_ylabel(r'$R_{g}^4$ ($nm^4$)')
+    change_width(axa,0.2)
+    figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+    
+    #Plot Alpha - T
+    maxval = df['Rg4/Rg2^2'].max()
+    figa, axa = plt.subplots()
+    plt.style.use('seaborn-colorblind')
+    plt.tight_layout()
+    axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
+    axa.set_ylabel(r'Temperature ($K$)')
+    axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
+    change_width(axa,0.2)
+    figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+#------------------------------------------------------------------
+# Plot Tg
+def plot_tg(df,fig_dir,pdi_val):
+    maxval = df['SV_NPT'].max()
+    figa, axa = plt.subplots()
+    plt.style.use('seaborn-colorblind')
+    plt.tight_layout()
+    axa.scatter(x=df['Temp'],y=df['SV_NPT'])
+    axa.set_xlabel(r'Temperature ($K$)')
+    axa.set_ylabel(r'Specific Volume ($cm^3/g$)')
+    change_width(axa,0.2)
+    figa.savefig(fig_dir + '/'+'sv_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    return figa, axa
+#------------------------------------------------------------------
+
 # if __name__
 if __name__ == '__main__':
     main()
