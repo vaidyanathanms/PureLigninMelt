@@ -15,6 +15,14 @@ import glob
 import math
 import subprocess
 from plt_aux import *
+from compute_props import *
+#------------------------------------------------------------------
+
+# Plot keys 0,1,2 (0-None,1-separate,2-together)
+rg_cal = 0 # avg rg and rg distribution
+tg_cal = 2 # plot specific volume for tg
+rdf_pol = 0
+seg_rg  = 0 # plot segmental radius of gyration
 #------------------------------------------------------------------
 
 # Color/line data; figure defaults
@@ -37,21 +45,14 @@ biom_arr  = ['WT'] # biomass type arr
 otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
 otyp_leg  = ['None']  # legend for solvents/cosolvents
 solv_type = 'None'
-pdi_val   = 3.0
-run_arr   = [6] # number of independent runs for a given biomass
-temp_min  = 380 # Minimum temperature
+pdi_val   = 1.0
+run_arr   = [3] # run numbers for a given biomass
+temp_min  = 300 # Minimum temperature
 temp_max  = 501 # Maximum temperature
-temp_dt   = 20  # Temperature dt
+temp_dt   = 10  # Temperature dt
 pdi_arr   = [3.0]
 mark_arr  = ['o','v']
 nchains   = 20
-#------------------------------------------------------------------
-
-# Plot keys 0,1,2 (0-None,1-separate,2-together)
-rg_cal = 2 # avg rg and rg distribution
-tg_cal = 0 # plot specific volume for tg
-rdf_pol = 0
-seg_rg  = 0 # plot segmental radius of gyration
 #------------------------------------------------------------------
 
 # Directory paths
@@ -67,7 +68,7 @@ if not os.path.isdir(scr_dir):
 if tg_cal != 0:
     print("Analyzing Tg data")
 
-    denarr = np.arange(temp_min,temp_max,3*temp_dt)
+    denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting rho-time plot
     for bio_indx in range(len(biom_arr)): # loop in biomass
 
         biomass = biom_arr[bio_indx]
@@ -151,15 +152,9 @@ if tg_cal != 0:
     if tg_cal == 2:
         fc_tg.close()
         df=pd.read_table(tg_fyl)
-        maxval = df['SV_NPT'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        axa.scatter(x=df['Temp'],y=df['SV_NPT'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'Specific Volume ($cm^3/g$)')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'sv_' + str(pdi_val) + '.png',\
+        figa, axa = plot_tg(df,fig_dir,pdi_val) 
+        tgval = tg_compute(df,axa) #compute tgval
+        figa.savefig(fig_dir + '/'+'sv2_' + str(pdi_val) + '.png',\
                      dpi=figa.dpi)
         plt.close(figa)
 
@@ -187,7 +182,6 @@ if tg_cal != 0:
                 df=pd.read_table(tg_fyl)
                 print('Plotting', pdileg)
                 ax2.scatter(x=df['Temp'],y=df['SV_NPT'],label=pdileg)
-                         
 
         fig2.savefig(fig_dir + '/'+'sv_all.png',dpi=fig2.dpi)
         plt.close(fig2)
@@ -213,8 +207,8 @@ if rg_cal != 0:
             # Write data and then read to concatenate
             rg_fyl = res_dir + '/Rgdata.dat'
             fall_rg = open(rg_fyl,'w')
-            fall_rg.write('%s\t%s\t%s\t%s\n' \
-                        %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
+            fall_rg.write('%s\t%s\t%s\t%s\n'\
+                          %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
 
         # Define axes labels for plotting Rg distribution
         fig1,ax1 = plt.subplots()
@@ -280,7 +274,6 @@ if rg_cal != 0:
             chain_rg2 /= len(run_arr)
             chain_rg4 /= len(run_arr)
             alpha = (chain_rg4)/(chain_rg2*chain_rg2)
-
             if rg_cal == 2:
                 fall_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
                                                    chain_rg4,alpha))
@@ -297,45 +290,7 @@ if rg_cal != 0:
     if rg_cal == 2:
         fall_rg.close()
         df=pd.read_table(rg_fyl)
-
-        #Plot Rg^2 - T
-        maxval = df['<Rg^2>'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$R_{g}^2$ ($nm^2$)')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
-
-        #Plot Rg^4 - T
-        maxval = df['<Rg^4>'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$R_{g}^4$ ($nm^4$)')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
-
-        #Plot Alpha - T
-        maxval = df['Rg4/Rg2^2'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
+        plot_allrg(df,fig_dir,pdi_val)
 #------------------------------------------------------------------
 
 # Plot avg rg and rg distribution
