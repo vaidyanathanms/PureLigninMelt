@@ -20,9 +20,9 @@ from compute_props import *
 
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
 rg_cal = 0 # avg rg and rg distribution
-tg_cal = 2 # plot specific volume for tg
+tg_cal = 0 # plot specific volume for tg
 rdf_pol = 0
-seg_rg  = 0 # plot segmental radius of gyration
+rg_scaling  = 1 # compute and plot rg scaling
 #------------------------------------------------------------------
 
 # Color/line data; figure defaults
@@ -45,13 +45,13 @@ biom_arr  = ['WT'] # biomass type arr
 otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
 otyp_leg  = ['None']  # legend for solvents/cosolvents
 solv_type = 'None'
-pdi_val   = 1.0
-run_arr   = [3] # run numbers for a given biomass
-temp_min  = 300 # Minimum temperature
+pdi_val   = 3.0
+run_arr   = [6] # run numbers for a given biomass
+temp_min  = 320 # Minimum temperature
 temp_max  = 501 # Maximum temperature
-temp_dt   = 10  # Temperature dt
-pdi_arr   = [3.0]
-mark_arr  = ['o','v']
+temp_dt   = 20  # Temperature dt
+pdi_arr   = [1.0,1.8,3.0]
+mark_arr  = ['o','d','s']
 nchains   = 20
 #------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ if tg_cal != 0:
         fc_tg.close()
         df=pd.read_table(tg_fyl)
         figa, axa = plot_tg(df,fig_dir,pdi_val) 
-        tgval = tg_compute(df,axa) #compute tgval
+        tgval = compute_tg(df,axa) #compute tgval
         figa.savefig(fig_dir + '/'+'sv2_' + str(pdi_val) + '.png',\
                      dpi=figa.dpi)
         plt.close(figa)
@@ -197,18 +197,16 @@ if rg_cal != 0:
 
         biomass = biom_arr[bio_indx]
 
-        if rg_cal == 2: # plot all averages together
+        res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
+                  '/pdi_' + str(pdi_val) + '/results'
+        if not os.path.isdir(res_dir):
+            os.mkdir(res_dir)
             
-            res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-                      '/pdi_' + str(pdi_val) + '/results'
-            if not os.path.isdir(res_dir):
-                os.mkdir(res_dir)
-            
-            # Write data and then read to concatenate
-            rg_fyl = res_dir + '/Rgdata.dat'
-            fall_rg = open(rg_fyl,'w')
-            fall_rg.write('%s\t%s\t%s\t%s\n'\
-                          %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
+        # Write data and then read to concatenate
+        rg_fyl = res_dir + '/Rgdata.dat'
+        fall_rg = open(rg_fyl,'w')
+        fall_rg.write('%s\t%s\t%s\t%s\n'\
+                      %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
 
         # Define axes labels for plotting Rg distribution
         fig1,ax1 = plt.subplots()
@@ -293,8 +291,8 @@ if rg_cal != 0:
         plot_allrg(df,fig_dir,pdi_val)
 #------------------------------------------------------------------
 
-# Plot avg rg and rg distribution
-if seg_rg != 0:
+# Compute Rgscaling
+if rg_scaling != 0:
     print("Analyzing Segmental Rg data")
 
     denarr = np.arange(temp_min,temp_max,3*temp_dt)
@@ -302,31 +300,20 @@ if seg_rg != 0:
 
         biomass = biom_arr[bio_indx]
 
-        if rg_cal == 2: # plot all averages together
+        res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
+                  '/pdi_' + str(pdi_val) + '/results'
+        if not os.path.isdir(res_dir):
+            os.mkdir(res_dir)
             
-            res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-                      '/pdi_' + str(pdi_val) + '/results'
-            if not os.path.isdir(res_dir):
-                os.mkdir(res_dir)
-            
-            # Write data and then read to concatenate
-            rg_fyl = res_dir + '/segRgdata.dat'
-            fall_rg = open(rg_fyl,'w')
-            fall_rg.write('%s\t%s\t%s\t%s\n' \
-                        %('s','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
+        # Write data and then read to concatenate
+        nu_fyl = res_dir + '/Rgscaling.dat'
+        fall_fit = open(nu_fyl,'w')
+        fall_fit.write('%s\t%s\t%s\n' \
+                   %('T','b','nu'))
 
-        # Define axes labels for plotting Rg distribution
-        fig1,ax1 = plt.subplots()
-        ax1.set_xlabel(r'$R_{g}$' ' (nm)')
-        ax1.set_ylabel('Probability')
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
 
         for tval in range(temp_min,temp_max,temp_dt): # loop in temp
             temp_leg  = str(tval)
-            rgall = np.zeros(0)
-            yrg_avg = np.zeros(0)            
-            chain_rg2 = 0; chain_rg4 = 0
 
             for casenum in range(len(run_arr)): # loop in runarr
                 wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
@@ -335,106 +322,55 @@ if seg_rg != 0:
 
                 print("Analyzing: ", pdi_val,tval,run_arr[casenum])
                 # Check file
-                list_of_files = glob.glob(tdir + '/rganalysis/rg_nptmain_*.xvg')
-                if list_of_files == []:
-                    print("Rg files do not exist for ", tval)
+                outfile = tdir + '/rganalysis/RgvsN.dat'
+                if not os.path.exists(outfile):
+                    print("RgvsN.dat not found for ", tval)
                     continue
+                    
+                df = pd.read_csv(outfile,sep="\s+")
+                fits,err = compute_rgscaling(df)
+                fall_fit.write('%d\t%g\t%g\n' \
+                               %(tval,fits[0],fits[1]))
+        fall_fit.close()
 
-                if len(list_of_files) != nchains:
-                    print('ERR: Mismatch in number of analysis file and input',\
-                          nchains, len(list_of_files))
-                    print(list_of_files)
-                    continue
-                
-                mon_arr = ret_mons(tdir + '/rganalysis/chainlist.dat')
-                rg_case = res_dir + '/Rg_casenum_' + str(casenum)+ \
-                         '_T_' + str(tval) + '.dat'
-                fcase_rg = open(rg_case,'w')
-                fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
-                            %('ChainID','Nmons','<Rg^2>','<Rg^4>','Rg4/rg2^2'))
-
-                case_rg2 = 0; case_rg4 = 0
-                for fyle in list_of_files:
-                    chid = ret_chid(fyle)
-                    # Open and parse file
-                    with open(fyle) as fin:
-                        lines = (line.lstrip() for line in fin \
-                                 if not line.lstrip().startswith('#') and \
-                                 not line.lstrip().startswith('@'))
-                        data  = np.loadtxt(lines)
-                        l1 = int(0.2*len(data[:1]))
-                        l2 = len(data[:,1])
-                        rg2 = np.average(np.square(data[l1:l2,1]))
-                        rg4 = np.average(np.power(data[l1:l2,1],4))
-                        al =  rg4/(rg2*rg2)
-                        fcase_rg.write('%g\t%g\t%g\t%g\t%g\n' %(chid,int(mon_arr[chid]),rg2,rg4,al))
-
-                        case_rg2 += rg2
-                        case_rg4 += rg4
-                        rgall = np.append(rgall,data[l1:l2,1]) #append all rg-data
-                        
-                chain_rg2 += case_rg2/nchains
-                chain_rg4 += case_rg4/nchains
-
-            chain_rg2 /= len(run_arr)
-            chain_rg4 /= len(run_arr)
-            alpha = (chain_rg4)/(chain_rg2*chain_rg2)
-
-            if rg_cal == 2:
-                fall_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
-                                                   chain_rg4,alpha))
-
-            # plot histogram across all cases
-            sns.kdeplot(data=np.array(rgall),label=temp_leg,ax=ax1)
-
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_pdi_'+str(pdi_val)+\
-                     '_Rgdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-
-    if rg_cal == 2:
-        fall_rg.close()
-        df=pd.read_table(rg_fyl)
-
-        #Plot Rg^2 - T
-        maxval = df['<Rg^2>'].max()
-        figa, axa = plt.subplots()
+    if len(pdi_arr) > 1: #plot as a function of PDI
+        
+        fig2, ax2 = plt.subplots()
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$R_{g}^2$ ($nm^2$)')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
+        ax2.set_xlabel(r'Temperature ($K$)')
+        ax2.set_ylabel(r'$\nu$')
+        change_width(ax2,0.2)
 
-        #Plot Rg^4 - T
-        maxval = df['<Rg^4>'].max()
-        figa, axa = plt.subplots()
+        fig3, ax3 = plt.subplots()
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$R_{g}^4$ ($nm^4$)')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
+        ax3.set_xlabel(r'Temperature ($K$)')
+        ax3.set_ylabel(r'$C_l$ (nm)')
+        change_width(ax2,0.2)
 
-        #Plot Alpha - T
-        maxval = df['Rg4/Rg2^2'].max()
-        figa, axa = plt.subplots()
-        plt.style.use('seaborn-colorblind')
-        plt.tight_layout()
-        axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
-        axa.set_ylabel(r'Temperature ($K$)')
-        axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
-        change_width(axa,0.2)
-        figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
-                     dpi=figa.dpi)
-        plt.close(figa)
+        for pdiindx in range(len(pdi_arr)):
+            pdiplt = pdi_arr[pdiindx]
+            pdileg = 'PDI: ' + str(pdiplt)
+            res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
+                      '/pdi_' + str(pdiplt) + '/results'
+
+            if not os.path.isdir(res_dir):
+                print(res_dir, "does not exist")
+                continue
+
+            else:
+                rg_fyl = res_dir + '/Rgscaling.dat'
+                df=pd.read_csv(rg_fyl,"\s+")
+                ax2.scatter(x=df['T'],y=df['nu'],marker=mrk_arr[pdiindx],\
+                            color=clr_arr[pdiindx])
+                ax3.scatter(x=df['T'],y=df['b'],marker=mrk_arr[pdiindx],\
+                            color=clr_arr[pdiindx])
+
+        fig2.savefig(fig_dir + '/'+'nu_all.png',dpi=fig2.dpi)
+        plt.close(fig2)
+        fig3.savefig(fig_dir + '/'+'cl_all.png',dpi=fig3.dpi)
+        plt.close(fig3)
 #------------------------------------------------------------------
 
 # Plot RDF (pol-solvent, pol-water)

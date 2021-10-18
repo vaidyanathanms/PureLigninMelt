@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
+from scipy.optimize import curve_fit
 import os
 import sys
 import re
@@ -21,7 +22,7 @@ import subprocess
 #------------------------------------------------------------------
 
 # Compute Tg
-def tg_compute(df,ax):
+def compute_tg(df,ax):
 
     tvals = np.array(df['Temp']); den_vals = np.array(df['SV_NPT'])
     lden  = len(tvals); 
@@ -49,6 +50,24 @@ def tg_compute(df,ax):
     return tvals[refcnt]
 #------------------------------------------------------------------ 
 
+# Compute Rgscaling
+def compute_rgscaling(df):
+    N_all = np.array(df['N']); Rg_all = np.array(df['Rgmean'])
+    lenarr = min(math.floor(0.5*len(N_all)),50)
+    if lenarr == 0:
+        print("ERR: No data found")
+        return [0,0], 0
+    xarr = N_all[0:lenarr]; yarr = Rg_all[0:lenarr]
+    pars, cov = curve_fit(func_powerlaw,xarr,yarr,p0=np.asarray([2, 0.5]))
+    stdevs = np.sqrt(np.diag(cov))
+    return pars, cov
+#------------------------------------------------------------------ 
+
+# Define power law
+def func_powerlaw(x,a,b):
+    return a*x**b
+
+#------------------------------------------------------------------ 
 # if __name__
 if __name__ == '__main__':
     main()
