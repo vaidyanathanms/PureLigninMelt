@@ -2,6 +2,12 @@
 /shalini
 /geninit_config/*~
 /geninit_config/pdi_*.inp
+/geninit_config/geninp*
+/geninit_config/*.o
+/geninit_config/*.mod
+/geninit_config/polydisp.inp
+/geninit_config/*.txt
+/geninit_config/__pycache__
 /myruns/src_gmx/sh_files/repeat_all.sh
 /myruns/src_py/aux_gmx_functions.pyc
 /myruns/src_py/aux_gmx_functions.pyc

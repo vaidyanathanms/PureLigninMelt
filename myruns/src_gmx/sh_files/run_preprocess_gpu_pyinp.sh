@@ -1,20 +1,23 @@
 #!/bin/bash
 
 #SBATCH -A bsd
-#SBATCH -p burst
+#SBATCH -p gpu
 #SBATCH -t 0-00:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
+#SBATCH -G 1
 #SBATCH --mem-per-cpu=2G
 #SBATCH -J py_jobname
 #SBATCH -o outdir/out.%J
 #SBATCH -e outdir/err.%J
 
 module load PE-gnu/3.0
+module load cuda/10.1
 module load gromacs/2020.6
 module load vmd
 
+export GMX_MAXBACKUP=-1;
 export OMP_NUM_THREADS=32;
 
 echo "begin job.."

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #BSUB -P BIP189
-#BSUB -W 00:05
+#BSUB -W 00:10
 #BSUB -nnodes 1
 #BSUB -J testcase_2
 #BSUB -o outdir/out.%J

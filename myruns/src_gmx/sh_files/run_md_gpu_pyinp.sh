@@ -1,20 +1,23 @@
 #!/bin/bash
 
 #SBATCH -A bsd
-#SBATCH -p burst
-#SBATCH -t 0-23:00:00
+#SBATCH -p gpu
+#SBATCH -t 0-03:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
+#SBATCH -G 1
 #SBATCH --mem-per-cpu=2G
 #SBATCH -J py_jobname
 #SBATCH -o outdir/out.%J
 #SBATCH -e outdir/err.%J
 
 module load PE-gnu/3.0
+module load cuda/10.1
 module load gromacs/2020.6
 module load vmd
 
+export GMX_MAXBACKUP=-1;
 export OMP_NUM_THREADS=32;
 
 echo "begin job.."
@@ -50,7 +53,7 @@ if ! test -f "$fnvthigh_inp"; then
 
 	echo "begin running enermin.tpr.."
 	# run enermin.tpr
-	srun gmx_mpi mdrun -s enermin.tpr -cpo state_min.cpt -cpi state_min.cpt -cpt 2 -g md_min.log -o traj_min.trr -e ener_min.edr -c confout_min.gro -maxh 23
+	srun gmx_mpi mdrun -s enermin.tpr -cpo state_min.cpt -cpi state_min.cpt -cpt 2 -g md_min.log -o traj_min.trr -e ener_min.edr -c confout_min.gro -maxh 3
 	wait
 
 	# generate nvt high files
@@ -74,7 +77,7 @@ if ! test -f "$fnvt_inp"; then
 
         echo "begin running high temperature NVT: nvt_high.tpr.."
         # run nvt_high.tpr
-        srun gmx_mpi mdrun -s nvt_high.tpr -cpo state_nvt_high.cpt -cpi state_nvt_high.cpt -cpt 5 -g md_nvt_high.log -o traj_nvt_high.trr -e ener_nvt_high.edr -c confout_nvt_high.gro -pin off -maxh 23
+        srun gmx_mpi mdrun -s nvt_high.tpr -cpo state_nvt_high.cpt -cpi state_nvt_high.cpt -cpt 5 -g md_nvt_high.log -o traj_nvt_high.trr -e ener_nvt_high.edr -c confout_nvt_high.gro -pme gpu -nb gpu -pin off -maxh 3
         wait
 
 
@@ -99,7 +102,7 @@ if ! test -f "$fnpt_berend_inp"; then
 	echo "begin running nvt.tpr.."
 	# run target nvt.tpr
 
-	srun gmx_mpi mdrun -s nvt.tpr -cpo state_nvt.cpt -cpi state_nvt.cpt -cpt 5 -g md_nvt.log -o traj_nvt.trr -e ener_nvt.edr -c confout_nvt.gro -pin off -maxh 23
+	srun gmx_mpi mdrun -s nvt.tpr -cpo state_nvt.cpt -cpi state_nvt.cpt -cpt 5 -g md_nvt.log -o traj_nvt.trr -e ener_nvt.edr -c confout_nvt.gro -pme gpu -nb gpu -pin off -maxh 3
 	wait
 
 	echo "begin generating npt_berendsen.tpr.."
@@ -120,7 +123,7 @@ if ! test -f "$fnpt_inp"; then
 
 	echo "begin running npt_berendsen.tpr.."
 	# run npt_berendsen.tpr
-	srun gmx_mpi mdrun -s npt_berendsen.tpr -cpo state_npt_berendsen.cpt -cpi state_npt_berendsen.cpt -cpt 5 -g md_npt_berendsen.log -o traj_npt_berendsen.trr -e ener_npt_berendsen.edr -c confout_npt_berendsen.gro  -pin off -maxh 23
+	srun gmx_mpi mdrun -s npt_berendsen.tpr -cpo state_npt_berendsen.cpt -cpi state_npt_berendsen.cpt -cpt 5 -g md_npt_berendsen.log -o traj_npt_berendsen.trr -e ener_npt_berendsen.edr -c confout_npt_berendsen.gro -pme gpu -nb gpu -pin off -maxh 3
 	wait
 
 	echo "begin generating npt_main.tpr.."
@@ -138,7 +141,7 @@ else
         echo "begin running npt_main.tpr.."
         # run npt_main.tpr
 
-        srun gmx_mpi mdrun -s npt_main.tpr -cpo state_npt_main.cpt -cpi state_npt_main.cpt -cpt 5 -g md_npt_main.log -o traj_npt_main.trr -e ener_npt_main.edr -c confout_npt_main.gro -pin off -maxh 23
+        srun gmx_mpi mdrun -s npt_main.tpr -cpo state_npt_main.cpt -cpi state_npt_main.cpt -cpt 5 -g md_npt_main.log -o traj_npt_main.trr -e ener_npt_main.edr -c confout_npt_main.gro -pme gpu -nb gpu -pin off -maxh 3
 
         wait
 
