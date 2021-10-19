@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=1G
 #SBATCH --job-name=geninp
 #SBATCH -o ./geninp_%j.out
-#SBATCH -e ./geninp_%e.err
+#SBATCH -e ./geninp_%j.err
 #SBATCH -p testing
 #SBATCH -A bsd
 
