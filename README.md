@@ -4,7 +4,7 @@ To generate lignin melt systems and compute lignin melt properties.
 Author: Vaidyanathan Sethuraman
 Email: v0e@ornl.gov
 
-Requirements: Python3.0+, TCL, GROMACS
+Requirements: Python3.0+, TCL, FORTRAN90, GROMACS
 
 Steps to run the systems:
 
