@@ -1,0 +1,22 @@
+case_num	1
+biomass_type	switchgrass
+disperse	CREATE py_dispinp polydisp.inp 100000 pditol 2 mwrange 15
+num_resids	py_resinp
+num_chains	py_chaininp
+top_ipfile	top_lignin.top
+seg_name	L
+branching	1	PCA	GOG	FERUT	GOG
+tol	0.1
+nattempts	50
+op_style	single
+patch_res_constraint	respatconstraints.inp
+patch_patch_constraint	patch_incomp.inp
+resid_inp	inpprob_res.dat
+patch_inp	inpprob_pat.dat
+clean_directories	Y
+LigninBuilder	par_lignin.prm
+
+min_polysize	2
+# optional: namd_inp	mini_pyconf.conf lignin.prm
+# optional: pdb_ipfile	single_G.pdb GUAI
+# optional: gen_packmol	DEF	DEF	0.0	0.0	0.0	0.0	0.0	0.0
