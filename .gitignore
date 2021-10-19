@@ -3,6 +3,8 @@
 /geninit_config/*~
 /geninit_config/*pyc
 /geninit_config/casenum_*
+/geninit_config/switchgrass*
+/geninit_config/old*
 /geninit_config/pdi_*.inp
 /geninit_config/geninp*
 /geninit_config/*.o
