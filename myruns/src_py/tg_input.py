@@ -15,6 +15,17 @@ import subprocess
 from aux_tg_inpgen import * # function definitions
 #------------------------------------------------------------------
 
+# Directory Paths
+main_dir  = os.getcwd() # current dir
+gmx_dir   = '../src_gmx' # gmx file super directory
+top_dir   = gmx_dir + '/solv_files/topol' # topology dir
+cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
+itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
+mdp_dir   = gmx_dir + '/' + 'mdp_files' # mdp file dir
+sh_dir    = gmx_dir + '/' + 'sh_files' # sh file dir
+scr_dir   = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
+#------------------------------------------------------------------
+
 # Version Info and # of input args for parsing thermostat coeff
 print("Generating GROMACS run-time inputs")
 print("Version: Apr-15-2021")
@@ -46,16 +57,7 @@ wat_name  = 'None' # add this later
 o_sol_typ = 'None' # add this later
 #------------------------------------------------------------------
 
-# Directory Paths
-main_dir  = os.getcwd() # current dir
-gmx_dir   = '../src_gmx' # gmx file super directory
-top_dir   = gmx_dir + '/solv_files/topol' # topology dir
-cfg_dir   = gmx_dir + '/solv_files/initguess' # configuration dir
-itp_dir   = gmx_dir + '/solv_files/prm_itp' # prm file dir
-mdp_dir   = gmx_dir + '/' + 'mdp_files' # mdp file dir
-sh_dir    = gmx_dir + '/' + 'sh_files' # sh file dir
-scr_dir   = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
-
+# Check Directories
 if not os.path.isdir(scr_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
     exit("Check scratch directory path")
