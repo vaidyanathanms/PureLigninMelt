@@ -12,6 +12,8 @@
 
 echo ${SLURM_SUBMIT_DIR}
 
+module rm anaconda
+module rm anaconda3
 module rm PE-gnu
 module load PE-intel
 module load python
