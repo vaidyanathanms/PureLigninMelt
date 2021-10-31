@@ -78,16 +78,31 @@ def retrieve_case_num(coeff_fyle):
 
     return casenum,clear_all
 #------------------------------------------------------------------
+# Generate new case number
+def generate_new_casenum():
+    ldir = glob.glob('casenum_*/')
+    if ldir == []:
+        casenum = 1
+    else:
+        casenum = -1
+        for dname in ldir:
+            spl  = re.split('[_ /]',dname)
+            cnum = spl[len(spl)-2]
+            if float(cnum) > casenum:
+                casenum = float(cnum)
+    return int(casenum)+1
+#------------------------------------------------------------------
 
 # Add/Change polydispersity values
-def editinpfyle(currdir,inpfyle,dispval,runval,nresids,nchains):
+def editinpfyle(currdir,inpfyle,dispval,runval,nresids,nchains,cnum):
 
     outfyle = 'pdi_' +str(dispval)+'_run_'+str(runval)+'_'+inpfyle
     fr  = open(inpfyle,'r')
     fw  = open(outfyle,'w')
     fid = fr.read().replace("py_dispinp",str(dispval)).\
               replace("py_resinp",str(nresids)).\
-              replace("py_chaininp",str(nchains))
+              replace("py_chaininp",str(nchains)).\
+              replace("py_casenum",str(cnum))
     fw.write(fid)
     fw.close()
     fr.close()
@@ -148,7 +163,7 @@ def cpy_pdb_top(init_dir,findir,biomass):
     gencpy2(init_dir,findir,src_pdb,pdb_file)
 #------------------------------------------------------------------
 # Copy supplementary files
-def cpy_supp_files(init_dir,findir,dispval):
+def cpy_supp_files(init_dir,findir,dispval,remflag):
     os.chdir(init_dir)
     # Copy all top files
     list_fnames = glob.glob('*.top')
@@ -213,12 +228,14 @@ def cpy_supp_files(init_dir,findir,dispval):
     if not list_fnames == []:
         for i in range(len(list_fnames)):
             gencpy(init_dir,findir,list_fnames[i])
-
+    
     # Copy all NAMD files
     list_fnames = glob.glob('out*')
     if not list_fnames == []:
         for i in range(len(list_fnames)):
             gencpy(init_dir,findir,list_fnames[i])
+            if rem_flag: #remove for saving space in $HOME
+                os.remove(list_fnames[i])
 
     list_fnames = glob.glob('*.namd')
     if not list_fnames == []:

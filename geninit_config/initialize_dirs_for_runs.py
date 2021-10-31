@@ -29,10 +29,12 @@ else:
 #------------------------------------------------------------------
 
 # Input Data
+rem_xtra    = 1 #removes out.*/ files for space saving
+gen_casenum = 1 #generates new casenum (casenum in input is a dummy)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]
-run_arr   = [2] # number of independent runs for a given biomass
+run_arr   = [4] # casenumber for a given biomass in $SCRATCH
 npoly_res = 22  # number of polymer residues
 num_chain = 20  # number of polymer chains
 solv_name = 'None' # add this later
@@ -76,14 +78,32 @@ for disp_cnt in range(len(disp_arr)): # loop in polydisperse array
 
     for run_id in range(len(run_arr)): # loop in runarr
 
-        print( "Initializing for run_" + str(run_arr[run_id]))
+        print( "Initializing new run for " + str(run_arr[run_id]))
         outdir = poly_dir + '/run_' + str(run_arr[run_id])
         if not os.path.isdir(outdir):
             os.mkdir(outdir)
-
-
+        else: # Make sure it needs to be rewritten!
+            print("WARNING: " + outdir + " already exists!..")
+            exloop = 0; ckey = 0
+            while exloop == 0:
+                inp = input("Do you want to wipe and rerun a new system (y/n)?")
+                if inp.lower() == 'n':
+                    print("Ignoring runs for " + outdir)
+                    ckey = 1; exloop = 1
+                elif inp.lower() == 'y':
+                    print("WARNING: Wiping old directory!!"); exloop = 1
+                else:
+                    print("Please input y or n. Case insensitive")
+                    
+                
+            if ckey == 1:
+                continue
         # Retrieve case number for moving into the new directory
-        casenum,clrdir = retrieve_case_num(inp_fyle)
+        if gen_casenum == 0:
+            casenum,clrdir = retrieve_case_num(inp_fyle)
+        else:
+            clrdir  = 0
+            casenum = generate_new_casenum()
         if clrdir == 1: #clear directory if they exist
             init_dir = main_dir + '/casenum_' + str(casenum)
             if os.path.isdir(init_dir):
@@ -92,7 +112,7 @@ for disp_cnt in range(len(disp_arr)): # loop in polydisperse array
         # Edit generic python input file
         edited_inpfyle = editinpfyle(main_dir,inp_fyle,\
                                      disp_arr[disp_cnt],run_arr[run_id],\
-                                     npoly_res,num_chain)
+                                     npoly_res,num_chain,casenum)
         # Run genconf.py
         run_genconf(edited_inpfyle,lig_fyles,casenum)
         # Check casenum directory is made
@@ -112,7 +132,7 @@ for disp_cnt in range(len(disp_arr)): # loop in polydisperse array
 
             # Copy all pdb/topology files
             cpy_pdb_top(init_dir,findir,biomass)
-            cpy_supp_files(init_dir,supp_findir,disp_arr[disp_cnt])
+            cpy_supp_files(init_dir,supp_findir,disp_arr[disp_cnt],rem_xtra)
 
         else:
             # Copy same biomass to all solvent directories
@@ -125,7 +145,7 @@ for disp_cnt in range(len(disp_arr)): # loop in polydisperse array
 
                 # Copy all pdb/topology files
                 cpy_pdb_top(init_dir,findir,biomass)
-                cpy_supp_files(init_dir,supp_findir)
+                cpy_supp_files(init_dir,supp_findir,rem_xtra)
 
         # End details and return directory handle
         print("End making files for run_" + str(run_arr[run_id]))
