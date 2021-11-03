@@ -234,7 +234,7 @@ def cpy_supp_files(init_dir,findir,dispval,remflag):
     if not list_fnames == []:
         for i in range(len(list_fnames)):
             gencpy(init_dir,findir,list_fnames[i])
-            if rem_flag: #remove for saving space in $HOME
+            if remflag: #remove for saving space in $HOME
                 os.remove(list_fnames[i])
 
     list_fnames = glob.glob('*.namd')
