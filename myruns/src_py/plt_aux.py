@@ -1,36 +1,6 @@
 # Auxiliary data for generic plot
 #------------------------------------------------------------------
-
-# Import modules
-import os
-import sys
-import numpy
-import re
-import shutil
-import glob
-import math
-import fileinput
-import subprocess
-import numpy as np
-#------------------------------------------------------------------
-
-# General copy script
-def gencpy(dum_maindir,dum_destdir,fylname):
-
-    srcfyl = dum_maindir + '/' + fylname
-
-    if not os.path.exists(srcfyl):
-        print('ERROR: ', srcfyl, 'not found')
-        return
-
-    desfyl = dum_destdir + '/' + fylname
-    shutil.copy2(srcfyl,desfyl)
-#------------------------------------------------------------------
-
 # Make labels and graphics
-
-
-# Supporting files for input_gen.py
 # Version: Mar-15-2021
 #------------------------------------------------------------------
 
