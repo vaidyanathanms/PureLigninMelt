@@ -100,7 +100,8 @@ def check_inp_files(dum_inpdir,top_name):
     # check structure files (*.pdb/.gro)
     if glob.glob(dum_inpdir+'/*.pdb') == [] and \
        glob.glob(dum_inpdir+'/*.gro') == []:
-        raise RuntimeError("No polymer pdb/gro files found")
+        raise RuntimeError("No polymer pdb/gro files found in "\
+                           + str(dum_inpdir))
     elif len(glob.glob(dum_inpdir+'/*.gro')) == 1:
         conf_fname = glob.glob(dum_inpdir+'/*.gro')[0]
     elif len(glob.glob(dum_inpdir+'/*.pdb')) == 1:
@@ -116,7 +117,8 @@ def check_inp_files(dum_inpdir,top_name):
 
     # check topology files
     if glob.glob(dum_inpdir+'/*.top') == []:
-        raise RuntimeError("No polymer topology files found")
+        raise RuntimeError("No polymer topology files found in "\
+                           +str(dum_inpdir))
     if top_name != 'None':
         if not os.path.exists(dum_inpdir + '/' + top_name):
             raise RuntimeError("Specified poly top file not found")

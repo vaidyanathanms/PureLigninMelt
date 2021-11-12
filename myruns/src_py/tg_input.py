@@ -42,12 +42,13 @@ else:
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 gpu       = 0 # 0-no gpu, 1 - gpu
+expts     = 1 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [3.0]
-run_arr   = [1,6] # number of independent runs for a given biomass
+disp_arr  = [1.8]
+run_arr   = [1] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 250 # Minimum temperature
+temp_min  = 600 # Minimum temperature
 temp_max  = 601 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10  # Temperature dt
 npoly_res = 22  # number of polymer residues
@@ -96,8 +97,10 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         print("ERR: Create path")
         continue
 
-
-    poly_dir = poly_dir + '/pdi_' + str(disp_arr[disp_val])
+    if expts:
+        poly_dir = poly_dir + '/expts'
+    else:
+        poly_dir = poly_dir + '/pdi_' + str(disp_arr[disp_val])
     if not os.path.isdir(poly_dir):
         print(poly_dir, " does not exist")
         print("ERR: Create path")
