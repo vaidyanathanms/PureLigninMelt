@@ -1,6 +1,6 @@
 #------------------------------------------------------------------
 # SPRInG-Simple Polydisperse Residue Input Generator
-# Ver: Dec-07-2020
+# First Ver: Dec-07-2020
 # Author: Vaidyanathan Sethuraman
 # To generate the initial configuration file for polydisperse chains
 # Use NAMD and LigninBuilder to run the script
@@ -8,8 +8,8 @@
 # 'None' is a reserved keyword- DONT USE IT for PDB/PSF filenames.
 #------------------------------------------------------------------
 
-print('*****************SPRInG_V1.1****************************')
-ver = 'Apr_29_2021'
+print('*****************SPRInG_V1.2****************************')
+ver = 'Nov_05_2021'
 
 # Import modules
 import os
@@ -51,8 +51,9 @@ with open(sys.argv[1]) as farg:
         if line.startswith('#'): # skip lines starting with #
             continue
         if not line: # skip empty lines
-            continue 
-        words = line.split()
+            continue
+        head, sep, tail = line.partition('#')
+        words = head.split()
         # call all functions
         if words[0].lower() == 'case_num'.lower(): 
             casenum = int(words[1])
@@ -60,27 +61,16 @@ with open(sys.argv[1]) as farg:
             biomas_typ = words[1]
         elif words[0].lower() == 'disperse'.lower():
             disperflag = 1
-            if words[1].lower() == 'READ'.lower():
-                disper_fyle = words[2]; 
-            elif words[1].lower() == 'CREATE'.lower():
+            if words[1].lower() == 'readdata'.lower():
+                disper_fyle = words[2]
+            elif words[1].lower() == 'exptdata'.lower():
+                makepdifile = 2
+                ex_disper_fyle,mon_mwt,npdiatt,\
+                    pditolval = read_expt_pdidata(words)
+            elif words[1].lower() == 'sztheory'.lower():
                 makepdifile = 1; 
-                if len(words) < 5:
-                    exit('Not enough arguments for PDI: '+line)
-                inp_pdival = float(words[2])
-                if inp_pdival <= 1.0:
-                    exit('ERR: PDI for polydisperse cases should be > 1.0')
-                disper_fyle = words[3]
-                npdiatt = int(words[4])
-                pditolval = 0
-                if (len(words)-5)%2 != 0:
-                    exit('ERR: Unknown number of args for disperse')
-                for wcnt in range(int(0.5*(len(words)-5))):
-                    if words[2*wcnt+5].lower() == 'pditol'.lower():
-                        pditolval = float(words[2*wcnt+6])
-                    elif words[2*wcnt+5].lower() == 'mwrange'.lower():
-                        distrange = int(words[2*wcnt+6])
-                    else:
-                        exit('ERR: Unknown keyword' + words[2*wcnt+5])
+                inp_pdival,disper_fyle,npdiatt,pditolval,\
+                    distrange = inp_create_sz(words,line)
             else:
                 exit('ERR: Unknown PDI option: ' + str(line))
         elif words[0].lower() == 'num_resids'.lower():
@@ -153,11 +143,9 @@ with open(sys.argv[1]) as farg:
             exit('Unknown keyword ' + str(words[0]))
 #----------------------------------------------------------------------
 # Basic flag checks
-outflag = check_all_flags(casenum,fresflag,fpatflag,disperflag,\
-                          mono_deg_poly,num_chains,fnamdflag,fpdbflag,\
-                          ftopflag)
-if outflag == -1:
-    exit()
+check_all_flags(casenum,fresflag,fpatflag,disperflag,\
+                mono_deg_poly,num_chains,fnamdflag,fpdbflag,\
+                ftopflag)
 #------------------------------------------------------------------
 
 # Output file names (will be generated automatically)
@@ -201,35 +189,49 @@ if fpp_constraint == 1:
 if flbdflag == 1:
     gencpy(srcdir,head_outdir,input_lbd)
 #------------------------------------------------------------------
+# Open log file before computing polydispersity
+flog = open(head_outdir + '/' + log_fname,'w')
 
 # Make monomer array for all chains
 if disperflag:
-    if makepdifile == 1:
+    if makepdifile == 1: #Create new data set from SZ distribution
         print("Making chains with target polydispersity...")
+        flog.write("Creating chains from SZ distribution ...")
         init_pdi_write(inp_pdival,mono_deg_poly,num_chains,disper_fyle\
                        ,npdiatt,pditolval,min_polysize,distrange)
         pdigenflag = compile_and_run_pdi(head_outdir)
         if pdigenflag == -1:
             exit()
 
-    print('Polydispersity file: ', disper_fyle)
+    elif makepdifile == 2: # Create data set from exptal distn
+        print("Making chains with experimental polydispersity data ...")
+        flog.write("Creating chains from user input experimental data ...")
+      
+        disper_fyle = make_expt_pdidata(ex_disper_fyle,num_chains,\
+                                        mon_mwt,npdiatt,pditolval,\
+                                        flog,head_outdir)
+
+    else: # Read data set from user inputs
+        print("Reading polydispersity data from user inputs...")
+        flog.write("Reading polydispersity data from user inputs ...")
+    print('Polydispersity data file: ', disper_fyle)
     deg_poly_all,pdival = make_polydisp_resids(disper_fyle,\
                                                num_chains,
                                                min_polysize)
     if pdival == 0:
-        exit()
+        raise RuntimeError("pdi_value is: ", 0)
     gencpy(srcdir,head_outdir,disper_fyle) # copy files to headdir
 
 else:
     deg_poly_all = [mono_deg_poly]*num_chains
     pdival = 1.0
     print('Monodispersed case')
+
 print('Tot ch/res/pat/pdi',num_chains,sum(deg_poly_all),\
       sum(deg_poly_all)-num_chains,pdival)
 #------------------------------------------------------------------
 
-# Open log file
-flog = open(head_outdir + '/' + log_fname,'w')
+# Write initial details to log file
 init_logwrite(flog,casenum,biomas_typ,deg_poly_all,input_top,\
               seg_name,num_chains,maxatt,conftol,itertype,\
               fpres_constraint,fpp_constraint,resinpfyle,patinpfyle\
@@ -426,6 +428,8 @@ for chcnt in range(num_chains):
     if pmolflag:
         make_packmol(fpack,pdbpsf_name,1,trans_list)
 #------------------------------------------------------------------
+
+# Write LigninBuilder commands
 if flbdflag == 1:
     fbund.write(';# Using LigninBuilder to generate init config\n')
     fbund.write('package require ligninbuilder\n')
