@@ -33,8 +33,8 @@ rem_xtra    = 1 #removes out.*/ files for space saving
 gen_casenum = 1 #generates new casenum (casenum in input is a dummy)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [3.0] # pdi value
-run_arr   = [2] # casenumber for a given biomass in $SCRATCH
+disp_arr  = [1.0] # pdi value
+run_arr   = [1,4] # casenumber for a given biomass in $SCRATCH
 npoly_res = 22  # number of polymer residues
 num_chain = 20  # number of polymer chains
 solv_name = 'None' # add this later
@@ -91,7 +91,8 @@ for disp_cnt in range(len(disp_arr)): # loop in polydisperse array
                     print("Ignoring runs for " + outdir)
                     ckey = 1; exloop = 1
                 elif inp.lower() == 'y':
-                    print("WARNING: Wiping old directory!!"); exloop = 1
+                    print("WARNING: Replacing contents of init_files in old directory!!")
+                    exloop = 1
                 else:
                     print("Please input y or n. Case insensitive")
                     
