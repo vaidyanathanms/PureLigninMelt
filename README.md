@@ -1,5 +1,5 @@
 # PureLigninMelt
-To generate lignin melt systems and compute lignin melt properties.
+To generate polydisperse lignin melt systems and compute lignin melt properties.
 
 Author: Vaidyanathan Sethuraman
 Email: v0e@ornl.gov
