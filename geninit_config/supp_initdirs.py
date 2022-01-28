@@ -78,6 +78,7 @@ def retrieve_case_num(coeff_fyle):
 
     return casenum,clear_all
 #------------------------------------------------------------------
+
 # Generate new case number
 def generate_new_casenum():
     ldir = glob.glob('casenum_*/')

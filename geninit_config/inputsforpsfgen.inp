@@ -1,8 +1,8 @@
-case_num	12
+case_num	py_casenum
 biomass_type	switchgrass
-disperse	sztheory 3.80 polydisp.inp 1000 pditol 1.0 distrange 20
-num_resids	22
-num_chains	30
+disperse	exptdata WTdata.dat mwmonomer 200 ntrials 1000 pditol 3
+num_resids	py_resinp
+num_chains	py_chaininp
 top_ipfile	top_lignin.top
 seg_name	L
 branching	1	PCA	GOG	FERUT	GOG
