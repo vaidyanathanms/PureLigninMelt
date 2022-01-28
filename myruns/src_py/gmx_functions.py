@@ -24,6 +24,7 @@ rg_calc    = 1 # Calculate rg
 seg_rgcalc = 0 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
+shape_calc = 0 # Calculate shape factor
 #------------------------------------------------------------------
 
 # Input Data
@@ -105,8 +106,9 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 continue
 
             create_anagrps_inp(temp_dir,mon_list,at_list,nchains)
-            run_analysis(nchains,rg_calc,msd_calc,rdf_calc,seg_rgcalc,sh_dir,\
-                         temp_dir,trajfile,tprfile,conffile,curr_temp)
+            run_analysis(nchains,rg_calc,msd_calc,rdf_calc,seg_rgcalc,\
+                         shape_calc,sh_dir,temp_dir,trajfile,tprfile,\
+                         conffile,curr_temp)
 
             os.chdir(temp_dir)
             if run_all:
@@ -123,6 +125,8 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 if rdf_calc:
                     print("Running RDF calculation")
                     subprocess.call(["sbatch","rdfcomp.sh"])
-
+                if shape_calc:
+                    print("Running shape factor calculation")
+                    subprocess.call(["sbatch","shapecomp.sh"])
             print("Completed T = ", curr_temp)
             os.chdir(main_dir) #main dir

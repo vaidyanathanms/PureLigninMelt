@@ -185,6 +185,7 @@ def find_tpr_trr_files(dum_inpdir):
         
     return tpr_fname, trr_fname
 #------------------------------------------------------------------    
+
 # Create index files for GROMACS
 def create_anagrps_inp(destdir,monlist,atomlist,nchains):
 
@@ -204,9 +205,10 @@ def create_anagrps_inp(destdir,monlist,atomlist,nchains):
     
     frglist.close()        
 #------------------------------------------------------------------    
+
 # Run analysis
-def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,headdir,\
-                 destdir,trajfile,tprfile,conffile,temp):
+def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\
+                 ,headdir,destdir,trajfile,tprfile,conffile,temp):
 
     if rgflag:
         fname = 'rgcomp_pyinp.sh'
@@ -220,6 +222,9 @@ def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,headdir,\
     if segrgflag:
         fname = 'segment_rgcomp_pyinp.sh'
         replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'segment_rgcomp_pyinp')
+    if shapeflag:
+        fname = 'segment_rgcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'shapecomp_pyinp')
 #--------------------------------------------------------------------
 
 # Replace strings in job files
