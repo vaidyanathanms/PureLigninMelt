@@ -42,14 +42,14 @@ else:
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 gpu       = 0 # 0-no gpu, 1 - gpu
-expts     = 1 # 1-expt data, 0 - sztheory
+expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.8]
-run_arr   = [1] # number of independent runs for a given biomass
+disp_arr  = [1.0]
+run_arr   = [2] #[1 ,4] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 600 # Minimum temperature
-temp_max  = 601 # Maximum temperature (< max; add +1 to desired)
+temp_min  = 390 # Minimum temperature
+temp_max  = 431 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10  # Temperature dt
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
@@ -129,6 +129,11 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             temp_dir = workdir1 + '/T_'+str(curr_temp)
             if not os.path.isdir(temp_dir):
                 os.mkdir(temp_dir)            
+
+            # Check if runs are over. 
+            if os.path.exists(temp_dir + '/trajfiles/confout_npt_main.gro'):
+                print('Runs finished ..')
+                continue
 
             # Set thermostat/top variables (change if there is a temp sweep)
             Tetau_nvt,Tetau_highnvt,Tetau_berend,Tetau_parrah,Prtau_berend,\
