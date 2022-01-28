@@ -18,11 +18,22 @@ from plt_aux import *
 from compute_props import *
 #------------------------------------------------------------------
 
+# Directory paths
+main_dir = os.getcwd() # current dir
+scr_dir  = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
+scr_dir  = scr_dir + '/Glassy_lignin'
+sh_dir   = '../src_gmx/sh_files'
+if not os.path.isdir(scr_dir):
+    print("FATAL ERROR: ", scr_dir, " not found")
+    exit("Check scratch directory path")
+#------------------------------------------------------------------
+
 # Plot keys 0,1,2 (0-None,1-separate,2-together)
 rg_cal = 0 # avg rg and rg distribution
 tg_cal = 0 # plot specific volume for tg
-rdf_pol = 0
-rg_scaling  = 1 # compute and plot rg scaling
+rdf_pol = 0 # plot RDFs
+rg_scaling  = 0 # compute and plot rg scaling
+den_cal = 1 # plot densities
 #------------------------------------------------------------------
 
 # Color/line data; figure defaults
@@ -45,30 +56,41 @@ biom_arr  = ['WT'] # biomass type arr
 otyp_arr  = ['None']  # solvent arr for solvents/cosolvents
 otyp_leg  = ['None']  # legend for solvents/cosolvents
 solv_type = 'None'
-pdi_val   = 3.0
-run_arr   = [6] # run numbers for a given biomass
-temp_min  = 320 # Minimum temperature
+pdi_val   = 1.8
+run_arr   = [1] # run numbers for a given biomass
+temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature
-temp_dt   = 20  # Temperature dt
+temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0]
 mark_arr  = ['o','d','s']
 nchains   = 20
 #------------------------------------------------------------------
 
-# Directory paths
-main_dir = os.getcwd() # current dir
-scr_dir  = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
-scr_dir  = scr_dir + '/Glassy_lignin'
-if not os.path.isdir(scr_dir):
-    print("FATAL ERROR: ", scr_dir, " not found")
-    exit("Check scratch directory path")
+# Global arrays
+denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
 #------------------------------------------------------------------
 
-# Plot glass transition for all solvents
+# Compute densities for all systems
+if den_cal != 0:
+    print("Computing densities")
+    if not os.path.isdir(sh_dir):
+        raise RuntimeError(sh_dir + " does not exist!")
+    for bio_indx in range(len(biom_arr)): # loop in biomass
+        biomass = biom_arr[bio_indx]
+        for casenum in range(len(run_arr)): # loop in runarr
+            wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
+                                             pdi_val,run_arr[casenum],\
+                                             600,solv_type)
+            print(wdir)
+            gencpy(sh_dir,wdir,'comp_dens_pyinp.sh')
+            submit_dens(os.getcwd(),wdir,'comp_dens_pyinp.sh',\
+                        temp_min,temp_max,temp_dt)
+#------------------------------------------------------------------
+
+# Plot glass transition for all systems
 if tg_cal != 0:
     print("Analyzing Tg data")
 
-    denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting rho-time plot
     for bio_indx in range(len(biom_arr)): # loop in biomass
 
         biomass = biom_arr[bio_indx]
@@ -113,6 +135,7 @@ if tg_cal != 0:
                     fname  = wdir + '/dens_npt.xvg'
                 else:
                     print(fname, " does not exist! ")
+                    print("ERR: Compute densities before Tg calculation..")
                     continue
 
                 # Open and parse file
@@ -192,7 +215,6 @@ if tg_cal != 0:
 if rg_cal != 0:
     print("Analyzing Rg data")
 
-    denarr = np.arange(temp_min,temp_max,3*temp_dt)
     for bio_indx in range(len(biom_arr)): # loop in biomass
 
         biomass = biom_arr[bio_indx]
@@ -295,7 +317,6 @@ if rg_cal != 0:
 if rg_scaling != 0:
     print("Analyzing Segmental Rg data")
 
-    denarr = np.arange(temp_min,temp_max,3*temp_dt)
     for bio_indx in range(len(biom_arr)): # loop in biomass
 
         biomass = biom_arr[bio_indx]
@@ -396,7 +417,7 @@ if rdf_pol:
         plt.style.use('seaborn-colorblind')
         plt.tight_layout()
 
-        for sol_indx in range(len(otyp_arr)): # loop in solvents
+        for sol_indx in range(len(otyp_arr)): # loop in systems
             solv_type = otyp_arr[sol_indx]
             solv_leg  = otyp_leg[sol_indx]
             xdata = np.zeros(0)

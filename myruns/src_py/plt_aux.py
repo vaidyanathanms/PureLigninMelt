@@ -35,7 +35,6 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
     head_dir = scr_dir + '/' + inp_type
     if not os.path.isdir(head_dir):
         raise RuntimeError(head_dir + " does not exist!")
-
        
     poly_dir = head_dir + '/' + biomass
     if not os.path.isdir(poly_dir):
@@ -70,7 +69,7 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
         raise RuntimeError(anadir, " does not exist!")
 
     return workdir1, anadir, fig_dir
-#------------------------------------------------------------------        
+#------------------------------------------------------------------
 
 def ret_ana_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
                  solv_type='None'):
@@ -204,8 +203,24 @@ def plot_tg(df,fig_dir,pdi_val):
                  dpi=figa.dpi)
     return figa, axa
 #------------------------------------------------------------------
-
+# Submit density job script
+def submit_dens(currdir,workdir,f_name,tmin,tmax,tdt):
+    os.chdir(workdir)
+    rev_fname = f_name.replace('_pyinp','')
+    fr  = open(workdir + '/' + f_name,'r')
+    fw  = open(workdir + '/' + rev_fname,'w')
+    fid = fr.read().replace("py_Tinit",str(tmin)).\
+          replace("py_Tfin",str(tmax)).\
+          replace("py_dT",str(tdt)).\
+          replace("py_jobname","denscomp")
+    fw.write(fid)
+    fw.close()
+    subprocess.call(["sbatch",rev_fname])
+    os.chdir(currdir)
+#------------------------------------------------------------------
+        
 # if __name__
 if __name__ == '__main__':
     main()
 #------------------------------------------------------------------
+
