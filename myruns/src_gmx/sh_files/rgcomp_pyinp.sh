@@ -43,10 +43,10 @@ if ! test -f "enermin.tpr"  && ! test -f "traj_npt_main.trr"; then
     exit 1
 fi
 
-if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
-wait
-fi
+#if ! test -f "traj_npt_main_nojump_100ps.trr"; then
+#    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+#wait
+#fi
 
 # Compute Rg of chains
 printf "Computing Rg of chains"
@@ -56,7 +56,7 @@ wait
 
 for (( chcnt_i = 0; chcnt_i <= nchains-1; chcnt_i++ ))
 do
-    printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${rgout}_${chcnt_i}.xvg &
+    printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main.trr -s py_tprfile -n chindx.ndx -dt 100 -o ${rgout}_${chcnt_i}.xvg &
 done
 wait
 

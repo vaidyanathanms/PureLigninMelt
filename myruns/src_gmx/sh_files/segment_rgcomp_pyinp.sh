@@ -33,10 +33,10 @@ if [ ! test -f "enermin.tpr"] && [ ! test -f "traj_npt_main_nojump_100ps.trr"]; 
     exit 1
 fi
 
-if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
-wait
-fi
+#if ! test -f "traj_npt_main_nojump_100ps.trr"; then
+#    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+#wait
+#fi
 
 if ! test -f "../init_files/L.psf"; then
     printf "psf file not found"
@@ -52,6 +52,7 @@ if [ ! -d ${outdir} ]; then
 fi
 wait
 
+# Segmental Rg computation command using tcl script
 vmd -dispdev text -e calc_seg_rg.tcl
 
 mv rg_allsegs.dat ${outdir}
