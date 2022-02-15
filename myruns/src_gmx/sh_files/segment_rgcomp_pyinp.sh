@@ -24,7 +24,7 @@ echo $PWD
 
 
 # Inputs
-rgout="traj_npt_main.trr"; outdir="rganalysis"
+rgout="traj_npt_main.trr"; allresultdir="all_results"
 nchains=py_nchains
 
 
@@ -47,16 +47,16 @@ fi
 # Compute segmental Rg of chains
 printf "Computing segmental Rg of chains"
 
-if [ ! -d ${outdir} ]; then
-    mkdir -p ${outdir}
+if [ ! -d ${allresultdir} ]; then
+    mkdir -p ${allresultdir}
 fi
 wait
 
 # Segmental Rg computation command using tcl script
 vmd -dispdev text -e calc_seg_rg.tcl
 
-mv rg_allsegs.dat ${outdir}
-mv RgvsN.dat ${outdir}
+mv rg_allsegs.dat ${allresultdir}
+mv RgvsN.dat ${allresultdir}
 
 printf "End of segmental Rg calculations.."
 

@@ -23,7 +23,7 @@ echo $PWD
 
 
 # Inputs
-rgout="rg_nptmain"; outdir="rganalysis"
+rgout="rg_nptmain"; allresultdir="all_results"
 nchains=py_nchains
 
 # Make Index files
@@ -44,14 +44,14 @@ if ! test -f "enermin.tpr"  && ! test -f "traj_npt_main.trr"; then
 fi
 
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+    printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
 wait
 fi
 
 # Compute Rg of chains
 printf "Computing Rg of chains"
 
-mkdir -p ${outdir}
+mkdir -p ${allresultdir}
 wait
 
 for (( chcnt_i = 0; chcnt_i <= nchains-1; chcnt_i++ ))
@@ -60,10 +60,9 @@ do
 done
 wait
 
-mv ${rgout}_*.xvg ${outdir}
-cp chainlist.dat ${outdir}
-cp chindx.ndx ${outdir}
-
+mv ${rgout}_*.xvg ${allresultdir}
+cp chainlist.dat ${allresultdir}
+cp chindx.ndx ${allresultdir}
 printf "End of Rg calculations.."
 
 
