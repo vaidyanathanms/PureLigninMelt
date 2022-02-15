@@ -20,8 +20,8 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 0 # Calculate rg
-seg_rgcalc = 0 # Calculate segmental rg
+rg_calc    = 1 # Calculate rg
+seg_rgcalc = 1 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 shape_calc = 0 # Calculate shape factor
@@ -34,8 +34,8 @@ inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]# dispersity values
 run_arr   = [2,3]  # run number for a given dispersity
-temp_min  = 300  # Minimum temperature
-temp_max  = 321  # Maximum temperature (< max; add +1 to desired)
+temp_min  = 250  # Minimum temperature
+temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 20   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
@@ -89,9 +89,9 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         workdir1 = set_working_dir(rundir,inp_type,o_sol_typ)
 
         # Tg calculation is for entire temperature range
-        if tg_calc:
+        if tg_calc: #Density/Tg Calculation
             if not os.path.isdir(workdir1 + '/outdir'):
-                os.mkdir(outdir)
+                os.mkdir(workdir1 + '/outdir')
             tlist = [temp_min,temp_max,temp_dt]
             set_jobfile(nchains,sh_dir,workdir1,'comp_dens_pyinp.sh',\
                         'None','None','None',tlist,'rho')
@@ -118,19 +118,19 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             create_anagrps_inp(temp_dir,mon_list,at_list,nchains)
 
             # Copy and set scripts for running
-            if rg_calc:
+            if rg_calc: #Rg Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'rg')
-            if seg_rgcalc:
-                set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
+            if seg_rgcalc: # Segmental Rg Calculation
+                set_jobfile(nchains,sh_dir,temp_dir,'segment_rgcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'segrg')
-            if msd_calc:
+            if msd_calc: # MSD Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'msdcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'msd')
-            if rdf_calc:
+            if rdf_calc: # RDF Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'rdf')
-            if shape_calc:
+            if shape_calc: # Shape Factor Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'shapecomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'shape')
 
