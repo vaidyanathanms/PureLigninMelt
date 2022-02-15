@@ -206,7 +206,7 @@ def create_anagrps_inp(destdir,monlist,atomlist,nchains):
     frglist.close()        
 #------------------------------------------------------------------    
 
-# Run analysis
+# Run analysis - OBSOLETE on Feb-14-2022. Added to gmx_functions.py
 def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\
                  ,headdir,destdir,trajfile,tprfile,conffile,temp):
 
@@ -227,8 +227,8 @@ def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\
         replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'shapecomp_pyinp')
 #--------------------------------------------------------------------
 
-# Replace strings in job files
-def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
+# Replace strings and set job files
+def set_jobfile(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
 
     if not os.path.exists(headdir + '/' + fname):
         raise RuntimeError(fname + ' not found in ' +headdir)
@@ -242,11 +242,17 @@ def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp
     rev_fname = fname.replace('_pyinp','')
     fr  = open(destdir + '/' + fname,'r')
     fw  = open(destdir + '/' + rev_fname,'w')
-    fid = fr.read().replace("py_nchains",str(nchains)).\
-          replace("py_trajfile",trajfile).\
-          replace("py_tprfile",tprfile).\
-          replace("py_conffile",conffile).\
-          replace("py_jname",jobname)
+    if anastr == 'rho':
+        fid = fr.read().replace("py_nchains",str(nchains)).\
+              replace("py_jname",jobname).\
+              replace("py_Tinit",str(temp[0])).\
+              replace("py_Tfin",str(temp[1])).\
+              replace("py_dT",str(temp[2]))
+    else:
+        fid = fr.read().replace("py_nchains",str(nchains)).\
+              replace("py_tprfile",tprfile).\
+              replace("py_conffile",conffile).\
+              replace("py_jname",jobname)
     fw.write(fid)
     fw.close()
     fr.close()

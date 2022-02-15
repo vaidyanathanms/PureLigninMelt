@@ -20,11 +20,12 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 1 # Calculate rg
+rg_calc    = 0 # Calculate rg
 seg_rgcalc = 0 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 shape_calc = 0 # Calculate shape factor
+tg_calc    = 1 # Calculate densities for Tg
 #------------------------------------------------------------------
 
 # Input Data
@@ -32,9 +33,9 @@ run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]# dispersity values
-run_arr   = [1]  # run number for a given dispersity
+run_arr   = [2,3]  # run number for a given dispersity
 temp_min  = 300  # Minimum temperature
-temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
+temp_max  = 321  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 20   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
@@ -83,9 +84,17 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         if not os.path.isdir(rundir):
             print(rundir, " does not exist")
             continue
-
+        
         # set main working directory and check input files are present
         workdir1 = set_working_dir(rundir,inp_type,o_sol_typ)
+
+        # Tg calculation is for entire temperature range
+        if tg_calc:
+            if not os.path.isdir(workdir1 + '/outdir'):
+                os.mkdir(outdir)
+            tlist = [temp_min,temp_max,temp_dt]
+            set_jobfile(nchains,sh_dir,workdir1,'comp_dens_pyinp.sh',\
+                        'None','None','None',tlist,'rho')
 
         # Loop over required temperature range
         for curr_temp in range(temp_min,temp_max,temp_dt): 
@@ -103,15 +112,35 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                                              nchains)
             tprfile, trajfile = find_tpr_trr_files(temp_dir)
             if tprfile == -1 or trajfile == -1:
+                print("ERROR: Did not find tpr/trr file...")
                 continue
 
             create_anagrps_inp(temp_dir,mon_list,at_list,nchains)
-            run_analysis(nchains,rg_calc,msd_calc,rdf_calc,seg_rgcalc,\
-                         shape_calc,sh_dir,temp_dir,trajfile,tprfile,\
-                         conffile,curr_temp)
 
-            os.chdir(temp_dir)
+            # Copy and set scripts for running
+            if rg_calc:
+                set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'rg')
+            if seg_rgcalc:
+                set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'segrg')
+            if msd_calc:
+                set_jobfile(nchains,sh_dir,temp_dir,'msdcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'msd')
+            if rdf_calc:
+                set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'rdf')
+            if shape_calc:
+                set_jobfile(nchains,sh_dir,temp_dir,'shapecomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'shape')
+
+            os.chdir(temp_dir) # Change to temperature directory
             if run_all:
+                if tg_calc:
+                    os.chdir(workdir1)
+                    print("Running Tg calculation")
+                    subprocess.call(["sbatch","comp_dens.sh"])
+                    os.chdir(temp_dir)
                 if rg_calc:
                     print("Running Rg calculation")
                     subprocess.call(["sbatch","rgcomp.sh"])
