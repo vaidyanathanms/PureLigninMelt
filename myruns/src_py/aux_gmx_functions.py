@@ -168,7 +168,7 @@ def find_tpr_trr_files(dum_inpdir):
         print('ERR: No tpr files found in ', dum_inpdir)
         return -1, -1
     elif len(glob.glob(dum_inpdir+'/*.tpr')) == 1:
-        conf_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
+        tpr_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
     elif len(glob.glob(dum_inpdir+'/*.tpr')) > 1:
         print('More than one tpr file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.tpr')
@@ -179,7 +179,7 @@ def find_tpr_trr_files(dum_inpdir):
         print('ERR: No trr files found in ', dum_inpdir)
         return -1, -1
     elif len(glob.glob(dum_inpdir+'/*.trr')) == 1:
-        conf_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
+        trr_fname = glob.glob(dum_inpdir+'/*.tpr')[0]
     elif len(glob.glob(dum_inpdir+'/*.trr')) > 1:
         print('More than one trr file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.trr')
