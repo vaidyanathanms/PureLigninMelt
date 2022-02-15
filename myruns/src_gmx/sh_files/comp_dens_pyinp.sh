@@ -7,7 +7,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem-per-cpu=2G
-#SBATCH -J py_jobname
+#SBATCH -J py_jname
 #SBATCH -o outdir/out.%J
 #SBATCH -e outdir/err.%J
 
