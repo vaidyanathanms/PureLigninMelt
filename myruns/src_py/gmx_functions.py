@@ -20,12 +20,12 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 1 # Calculate rg
+rg_calc    = 0 # Calculate rg
 seg_rgcalc = 1 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 shape_calc = 0 # Calculate shape factor
-tg_calc    = 1 # Calculate densities for Tg
+tg_calc    = 0 # Calculate densities for Tg
 #------------------------------------------------------------------
 
 # Input Data
@@ -33,10 +33,10 @@ run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]# dispersity values
-run_arr   = [2,3]  # run number for a given dispersity
+run_arr   = [3]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 20   # Temperature dt
+temp_dt   = 10   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
 wat_name  = 'None' # add this later
@@ -61,6 +61,8 @@ if not os.path.isdir(scr_dir):
 
 # Main code
 for disp_val in range(len(disp_arr)): # loop in polydisperse array
+
+    psfflag = 1 # default value
 
     # Make directories
     head_dir = scr_dir + '/' + inp_type
@@ -96,6 +98,16 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             set_jobfile(nchains,sh_dir,workdir1,'comp_dens_pyinp.sh',\
                         'None','None','None',tlist,'rho')
 
+            if run_all:
+                os.chdir(workdir1)
+                print("Running Tg calculation")
+                subprocess.call(["sbatch","comp_dens.sh"])
+                os.chdir(main_dir) #main dir
+
+        # If segmental rg, then psf/pdb files need to be present
+        if seg_rgcalc: 
+            psfflag = check_psf(workdir1)       
+
         # Loop over required temperature range
         for curr_temp in range(temp_min,temp_max,temp_dt): 
 
@@ -106,8 +118,12 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             print('Analyzing: ', biomass,inp_type,'run_'+\
                   str(run_arr[casenum]), 'T_'+str(curr_temp))
+            
+            if psfflag == -1 and seg_rgcalc == 1:
+                cpy_gro_top_files(temp_dir,workdir1+'/init_files')
+                psfflag = check_psf(workdir1) # redo to make sure
 
-            conffile,topfile=check_inp_files(temp_dir,'None')
+            conffile,topfile = check_inp_files(temp_dir,'None')
             mon_list,at_list = count_nchains(temp_dir,conffile,\
                                              nchains)
             tprfile, trajfile = find_tpr_trr_files(temp_dir)
@@ -136,11 +152,6 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
 
             os.chdir(temp_dir) # Change to temperature directory
             if run_all:
-                if tg_calc:
-                    os.chdir(workdir1)
-                    print("Running Tg calculation")
-                    subprocess.call(["sbatch","comp_dens.sh"])
-                    os.chdir(temp_dir)
                 if rg_calc:
                     print("Running Rg calculation")
                     subprocess.call(["sbatch","rgcomp.sh"])

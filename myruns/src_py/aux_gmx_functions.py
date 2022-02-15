@@ -12,6 +12,8 @@ import glob
 import math
 import subprocess
 import datetime
+import parmed as pmd
+import general_functions as genfun
 #------------------------------------------------------------------
 
 # General copy script
@@ -44,7 +46,7 @@ def set_working_dir(rundir,inp_type,solv_type = 'None'):
 
 #Check pdb/psf/top files for the melt (or polymer)
 def check_inp_files(dum_inpdir,top_name):
-    # check structure files (*.pdb/.gro)
+    # check structure files (.gro)
     if glob.glob(dum_inpdir+'/*.gro') == []:
         raise RuntimeError("No polymer gro files found")
     elif len(glob.glob(dum_inpdir+'/*.gro')) == 1:
@@ -232,23 +234,23 @@ def set_jobfile(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,ana
 
     if not os.path.exists(headdir + '/' + fname):
         raise RuntimeError(fname + ' not found in ' +headdir)
-
-    jobname  = anastr + '_T_' + str(temp)
-    trajfile = split_and_return_filename(trajfile)
-    tprfile  = split_and_return_filename(tprfile)
-    conffile = split_and_return_filename(conffile)
-    
+  
     gencpy(headdir,destdir,fname)
     rev_fname = fname.replace('_pyinp','')
     fr  = open(destdir + '/' + fname,'r')
     fw  = open(destdir + '/' + rev_fname,'w')
     if anastr == 'rho':
+        jobname  = anastr
         fid = fr.read().replace("py_nchains",str(nchains)).\
               replace("py_jname",jobname).\
               replace("py_Tinit",str(temp[0])).\
               replace("py_Tfin",str(temp[1])).\
               replace("py_dT",str(temp[2]))
     else:
+        jobname  = anastr + '_T_' + str(temp)
+        trajfile = split_and_return_filename(trajfile)
+        tprfile  = split_and_return_filename(tprfile)
+        conffile = split_and_return_filename(conffile)
         fid = fr.read().replace("py_nchains",str(nchains)).\
               replace("py_tprfile",tprfile).\
               replace("py_conffile",conffile).\
@@ -263,6 +265,46 @@ def split_and_return_filename(inp_fylename):
 
     outstr = inp_fylename.split('/')
     return outstr[len(outstr)-1]
+#--------------------------------------------------------------------
+
+# Check for PSF files
+def check_psf(inpdir):
+    desdir = inpdir + '/init_files'
+    if not os.path.isdir(desdir):
+        print(desdir + " does not exist!")
+        os.mkdir(desdir)
+        return -1
+    else:
+        if not os.path.exists(desdir+'/L.psf'):
+            print('L.psf for segmental Rg not found in ' +  desdir)
+            print('Will generate L.psf files using top/gro files')
+            return -1
+        else:
+            return 1
+#--------------------------------------------------------------------
+
+# Copy relevant gro/top files
+def cpy_gro_top_files(inpdir,desdir):
+    grofile = genfun.extract_file_name(genfun.find_latest_file(inpdir,'gro'))
+    topfile = genfun.extract_file_name(genfun.find_latest_file(inpdir,'top'))
+    gencpy(inpdir,desdir,grofile)
+    gencpy(inpdir,desdir,topfile)
+    convert_top_to_psf(topfile,grofile,desdir)
+#--------------------------------------------------------------------
+
+# Convert top to psf/crd
+# Thank you, Alan Hicks :) for introducing to ParmEd
+# https://github.com/ParmEd/ParmEd
+def convert_top_to_psf(inptop,inpgro,destdir):
+    print("Generating L.psf file...")
+    gmx_top = pmd.load_file(destdir + '/' + inptop, \
+                            xyz= destdir + '/' + inpgro)
+    gmx_top.save(destdir + '/inp_amber.top', format='amber')
+    gmx_top.save(destdir + '/inp_amber.crd', format='rst7')
+    amber = pmd.load_file(destdir + '/inp_amber.top',\
+                          destdir + '/inp_amber.crd')
+    amber.save(destdir + '/L.psf')
+    amber.save(destdir + '/L.crd')
 #--------------------------------------------------------------------
 
 # if __name__ 
