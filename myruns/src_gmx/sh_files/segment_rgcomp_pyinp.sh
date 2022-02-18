@@ -5,7 +5,7 @@
 #SBATCH -t 0-10:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
 #SBATCH -J py_jname
 #SBATCH -o outdir/out.%J
@@ -17,7 +17,7 @@ module load gromacs/2020.6
 module load vmd
 
 export GMX_MAXBACKUP=-1;
-export OMP_NUM_THREADS=32;
+export OMP_NUM_THREADS=1;
 
 echo "begin job.."
 echo $PWD
