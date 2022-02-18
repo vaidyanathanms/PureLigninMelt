@@ -33,9 +33,14 @@ wait
 fi
 wait
 
-#---------------------------------------------------------Generate enermin files----------------------------------
+#----------------------------------- All tpr file names--------------------------------
 finit_inp=./enermin.tpr
-if ! test -f "$finit_inp"; then
+fnvthigh_inp=./nvt_high.tpr 
+fnvt_inp=./nvt.tpr
+fnpt_berend_inp=./npt_berendsen.tpr
+fnpt_inp=./npt_main.tpr
+#---------------------------------------------------------Generate enermin files----------------------------------
+if ! test -f "$finit_inp" && ! test -f "$fnvthigh_inp" && ! test -f "$fnvt_inp" && ! test -f "$fnpt_berend_inp" && ! test -f "$fnpt_inp"; then
 	echo "begin generating enermin.tpr.."
 	# generate enermin files
 	srun gmx_mpi grompp -f minim.mdp -c py_finconf -p py_topol -o enermin.tpr
@@ -45,8 +50,7 @@ fi
 wait
 
 #-----------------------------------Minimize and generate NVT_high files-------------------------------------------
-fnvthigh_inp=./nvt_high.tpr 
-if ! test -f "$fnvthigh_inp"; then
+if ! test -f "$fnvthigh_inp" && ! test -f "$fnvt_inp" && ! test -f "$fnpt_berend_inp" && ! test -f "$fnpt_inp"; then
 
 	echo "begin running enermin.tpr.."
 	# run enermin.tpr
@@ -68,8 +72,7 @@ wait
 
 
 #-----------------------------------Run NVT_high and generate target NVT files--------------------------------------
-fnvt_inp=./nvt.tpr
-if ! test -f "$fnvt_inp"; then
+if ! test -f "$fnvt_inp" && ! test -f "$fnpt_berend_inp" && ! test -f "$fnpt_inp"; then
 
 
         echo "begin running high temperature NVT: nvt_high.tpr.."
@@ -93,8 +96,7 @@ fi
 wait
 
 #------------------------------------Run target NVT and generate NPT Berendsen---------------------------------------
-fnpt_berend_inp=./npt_berendsen.tpr
-if ! test -f "$fnpt_berend_inp"; then
+if ! test -f "$fnpt_berend_inp" && ! test -f "$fnpt_inp"; then
 
 	echo "begin running nvt.tpr.."
 	# run target nvt.tpr
@@ -115,7 +117,6 @@ fi
 wait
 
 #-----------------------------------Run NPT Berendsen and generate NPT_main files------------------------------------
-fnpt_inp=./npt_main.tpr
 if ! test -f "$fnpt_inp"; then
 
 	echo "begin running npt_berendsen.tpr.."
