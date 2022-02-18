@@ -13,6 +13,7 @@ import glob
 import math
 import subprocess
 from aux_tg_inpgen import * # function definitions
+import general_functions as genfun
 #------------------------------------------------------------------
 
 # Directory Paths
@@ -45,11 +46,11 @@ gpu       = 0 # 0-no gpu, 1 - gpu
 expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0]
-run_arr   = [2] #[1 ,4] # number of independent runs for a given biomass
+disp_arr  = [3.0]
+run_arr   = [4] #[1 ,4] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
-temp_min  = 390 # Minimum temperature
-temp_max  = 431 # Maximum temperature (< max; add +1 to desired)
+temp_min  = 250 # Minimum temperature
+temp_max  = 501 # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10  # Temperature dt
 npoly_res = 22  # number of polymer residues
 box_dim   = 15  # Initial box size
@@ -121,12 +122,11 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         # Loop over required temperature range
         for curr_temp in range(temp_min,temp_max,temp_dt):           
 
-            poly_conffile,poly_topfile=check_inp_files(workdir1,'None')
-
             show_initial_log(biomass,o_sol_typ,disp_arr[disp_val],\
                              run_arr[casenum],curr_temp)
 
             temp_dir = workdir1 + '/T_'+str(curr_temp)
+
             if not os.path.isdir(temp_dir):
                 os.mkdir(temp_dir)            
 
@@ -135,6 +135,12 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 print('Runs finished ..')
                 continue
 
+            # Find pdb/gro/top files
+            poly_conffile = genfun.extract_file_name(genfun.find_latest_file(workdir1,'pdb'))
+            if poly_conffile == 'None':
+                poly_conffile = genfun.extract_file_name(genfun.find_latest_file(workdir1,'gro'))        
+            poly_topfile = genfun.extract_file_name(genfun.find_latest_file(workdir1,'top'))
+     
             # Set thermostat/top variables (change if there is a temp sweep)
             Tetau_nvt,Tetau_highnvt,Tetau_berend,Tetau_parrah,Prtau_berend,\
                 Prtau_parrah,ref_pres,melt_topname=couple_coeff(inp_type,\
@@ -218,12 +224,11 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                                   sh_pp_fyle,ff_dir,sol_cfg,box_dim,\
                                   indx_fyle,curr_temp,disp_arr[disp_val],\
                                   run_arr[casenum])
-            else: # check for initconf.gro
-                if os.path.exists(def_inicon):
+            else: # check for poly_conffile
+                if not os.path.exists(poly_conffile):
                     poly_conffile = def_inicon
-                else:
-                    print('ERR: tpr files found, but no', def_inicon, 'found')
-                    continue
+                    print('WARNING: tpr files found, but no pdb/gro files found')
+                    print('WARNING: Using dummy gro files')
 
             # Edit run_md shell script files always
             edit_md_files(biomass,inp_type,poly_conffile,poly_topedit,\

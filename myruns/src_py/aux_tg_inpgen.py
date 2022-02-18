@@ -521,7 +521,7 @@ def edit_md_files(biomass,inp_type,polycfg,topfyle,o_sol_type\
     if inp_type == 'solvents' or inp_type == 'cosolvents':
         jname = jname + '_' + o_sol_type #py_jobname
 
-    fin_conf = 'initconf.gro' # in gro format
+    fin_conf = polycfg #'initconf.gro' # in gro format
 
     # edit md_fyle
     py_fname = md_fyle
