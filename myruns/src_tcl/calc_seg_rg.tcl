@@ -1,6 +1,10 @@
 # Compute segmental Rg 
-mol load psf ../init_files/L.psf ;# you can also use a PDB
+# Preferable is PSF format in next line although PDB is OK!
+# If PDB, check the fragments are correctly identified
+mol load psf ../init_files/compRg.psf ;
 
+# Check the resname FERU and PCA. 
+# Sometimes it could be FERUT (extra T) and PCA
 set ferseg "FERU"
 set pcaseg "PCA"
 set psfval [atomselect top "all"]
@@ -19,7 +23,7 @@ set frg [open "rg_allsegs.dat" w]
 puts $frg "segmentID \t n \t m \t m-n \t Rg"
 
 set Ntotmax 0
-# Main code
+# Main code (Note with ParmEd, segname identity is lost. So changing to fragment identifier)
 foreach s $seg {
     set res0 [lsort -unique [[atomselect top "fragment $s and not resname $ferseg and not resname $pcaseg"] get resid]]
     puts "old residue order: $res0"
