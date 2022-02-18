@@ -34,7 +34,7 @@ if [ ! test -f "enermin.tpr"] && [ ! test -f "traj_npt_main_nojump_100ps.trr"]; 
 fi
 
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+    printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
 wait
 fi
 
