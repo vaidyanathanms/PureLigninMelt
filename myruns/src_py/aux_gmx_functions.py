@@ -275,9 +275,13 @@ def check_psf(inpdir):
         os.mkdir(desdir)
         return -1
     else:
-        if not os.path.exists(desdir+'/L.psf'):
-            print('L.psf for segmental Rg not found in ' +  desdir)
-            print('Will generate L.psf files using top/gro files')
+        # Default PSF file is L.psf. Just to be consistent I recreate
+        # PSF file using ParmEd - compRg.psf such that the resnames are
+        # FERU and PCA. Also, while calculating the Rg, the "fragment" 
+        # identifier is used as opposed to segname identifier.
+        if not os.path.exists(desdir+'/compRg.psf'):
+            print('compRg.psf for segmental Rg not found in ' +  desdir)
+            print('Will generate compRg.psf files using top/gro files')
             return -1
         else:
             return 1
@@ -303,8 +307,8 @@ def convert_top_to_psf(inptop,inpgro,destdir):
     gmx_top.save(destdir + '/inp_amber.crd', format='rst7')
     amber = pmd.load_file(destdir + '/inp_amber.top',\
                           destdir + '/inp_amber.crd')
-    amber.save(destdir + '/L.psf')
-    amber.save(destdir + '/L.crd')
+    amber.save(destdir + '/compRg.psf') #for computing segment Rg
+    amber.save(destdir + '/compRg.crd')
 #--------------------------------------------------------------------
 
 # if __name__ 
