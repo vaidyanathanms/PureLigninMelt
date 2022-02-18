@@ -300,11 +300,18 @@ def cpy_gro_top_files(inpdir,desdir):
 # Thank you, Alan Hicks :) for introducing to ParmEd
 # https://github.com/ParmEd/ParmEd
 def convert_top_to_psf(inptop,inpgro,destdir):
-    print("Generating L.psf file...")
+    print("Generating compRg.psf file...")
     gmx_top = pmd.load_file(destdir + '/' + inptop, \
                             xyz= destdir + '/' + inpgro)
+
+    # ParmEd doesn't like overwriting. So delete and recreate
+    if os.path.exists(destdir + '/inp_amber.top'):
+        os.remove(destdir + '/inp_amber.top')
+    if os.path.exists(destdir + '/inp_amber.crd'):
+        os.remove(destdir + '/inp_amber.crd')
+
     gmx_top.save(destdir + '/inp_amber.top', format='amber')
-    gmx_top.save(destdir + '/inp_amber.crd', format='rst7')
+    gmx_top.save(destdir + '/inp_amber.crd', format='rst7')   
     amber = pmd.load_file(destdir + '/inp_amber.top',\
                           destdir + '/inp_amber.crd')
     amber.save(destdir + '/compRg.psf') #for computing segment Rg
