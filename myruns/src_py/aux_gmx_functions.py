@@ -58,12 +58,8 @@ def check_inp_files(dum_inpdir,top_name):
 
     # check topology files
     if glob.glob(dum_inpdir+'/*.top') == []:
-        raise RuntimeError("No polymer topology files found")
-    if top_name != 'None':
-        if not os.path.exists(dum_inpdir + '/' + top_name):
-            raise RuntimeError("Specified poly top file not found")
-        else:
-            topol_fname = top_name
+        print("WARNING: No polymer topology files found")
+        topol_fname = 'None'
     elif len(glob.glob(dum_inpdir+'/*.top')) == 1 and \
          top_name == 'None':
         topol_fname = glob.glob(dum_inpdir+'/*.top')[0]

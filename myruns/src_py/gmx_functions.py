@@ -20,19 +20,19 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 0 # Calculate rg
+rg_calc    = 1 # Calculate rg
 seg_rgcalc = 1 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 shape_calc = 0 # Calculate shape factor
-tg_calc    = 0 # Calculate densities for Tg
+tg_calc    = 1 # Calculate densities for Tg
 #------------------------------------------------------------------
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.8]# dispersity values
+disp_arr  = [1.0]# dispersity values
 run_arr   = [2]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
