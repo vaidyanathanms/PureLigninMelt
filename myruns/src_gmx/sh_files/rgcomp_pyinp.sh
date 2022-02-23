@@ -24,6 +24,7 @@ echo $PWD
 
 # Inputs
 rgout="rg_nptmain"; allresultdir="all_results"
+eigout="eig_nptmain"
 nchains=py_nchains
 
 # Make Index files
@@ -56,11 +57,14 @@ wait
 
 for (( chcnt_i = 0; chcnt_i <= nchains-1; chcnt_i++ ))
 do
-    printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -dt 100 -o ${rgout}_${chcnt_i}.xvg &
+    printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${rgout}_${chcnt_i}.xvg &
+    wait
+    printf "${chcnt_i}" | srun gmx polystat -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -nomw -pc -o ${eigout}_${chcnt_i}.xvg &
 done
 wait
 
 mv ${rgout}_*.xvg ${allresultdir}
+mv ${eigout}_*.xvg ${allresultdir}
 cp chainlist.dat ${allresultdir}
 cp chindx.ndx ${allresultdir}
 printf "End of Rg calculations.."
