@@ -124,7 +124,6 @@ def change_width(ax, new_value):
         # Recenter the bar
         patch.set_x(patch.get_x() + diff * .5)
 #------------------------------------------------------------------
-
 # Return Chain ID from file name
 def ret_chid(inpfyle):
     outstr = re.split(r'/|.xvg|_',inpfyle)
@@ -134,7 +133,7 @@ def ret_chid(inpfyle):
     else:
         return int(chid)
 #------------------------------------------------------------------
-
+# Return the monomers in a chain
 def ret_mons(inpfyle):
     if not os.path.exists(inpfyle):
         raise RuntimeError('File not found ' + inpfyle)
@@ -149,16 +148,11 @@ def ret_mons(inpfyle):
 #------------------------------------------------------------------
 # All Rg plots
 def plot_allrg(df,fig_dir,pdi_val):
-
     #Plot Rg^2 - T
     maxval = df['<Rg^2>'].max()
     figa, axa = plt.subplots()
-    plt.style.use('seaborn-colorblind')
-    plt.tight_layout()
     axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
-    axa.set_ylabel(r'Temperature ($K$)')
-    axa.set_ylabel(r'$R_{g}^2$ ($nm^2$)')
-    change_width(axa,0.2)
+    set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{2}$ ($nm^{2}$)') 
     figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
     plt.close(figa)
@@ -166,12 +160,8 @@ def plot_allrg(df,fig_dir,pdi_val):
     #Plot Rg^4 - T
     maxval = df['<Rg^4>'].max()
     figa, axa = plt.subplots()
-    plt.style.use('seaborn-colorblind')
-    plt.tight_layout()
     axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
-    axa.set_ylabel(r'Temperature ($K$)')
-    axa.set_ylabel(r'$R_{g}^4$ ($nm^4$)')
-    change_width(axa,0.2)
+    set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{4}$ ($nm^{4}$)') 
     figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
     plt.close(figa)
@@ -179,12 +169,9 @@ def plot_allrg(df,fig_dir,pdi_val):
     #Plot Alpha - T
     maxval = df['Rg4/Rg2^2'].max()
     figa, axa = plt.subplots()
-    plt.style.use('seaborn-colorblind')
-    plt.tight_layout()
     axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
-    axa.set_ylabel(r'Temperature ($K$)')
-    axa.set_ylabel(r'$<Rg^4>/<Rg^2>^2$')
-    change_width(axa,0.2)
+    set_axes(axa,plt,r'Temperature ($K$)',\
+             r'$\langle R_{g}^{4} \rangle/ \langle R_{g}^{2} \rangle^{2}$') 
     figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
     plt.close(figa)
@@ -193,16 +180,20 @@ def plot_allrg(df,fig_dir,pdi_val):
 def plot_tg(df,fig_dir,pdi_val):
     maxval = df['SV_NPT'].max()
     figa, axa = plt.subplots()
-    plt.style.use('seaborn-colorblind')
-    plt.tight_layout()
+    set_axes(axa,plt,r'Temperature ($K$)',r'Specific Volume ($cm^3/g$)')
     axa.scatter(x=df['Temp'],y=df['SV_NPT'])
-    axa.set_xlabel(r'Temperature ($K$)')
-    axa.set_ylabel(r'Specific Volume ($cm^3/g$)')
-    change_width(axa,0.2)
     figa.savefig(fig_dir + '/'+'sv_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
     return figa, axa
 #------------------------------------------------------------------
+# Plot axis details
+def set_axes(axhdl,plt,xlabel,ylabel):
+    plt.style.use('seaborn-colorblind')
+    plt.tight_layout()
+    axhdl.set_xlabel(xlabel)
+    axhdl.set_ylabel(ylabel)
+    change_width(axhdl,0.2)
+#------------------------------------------------------------------    
 # Submit density job script
 def submit_dens(currdir,workdir,f_name,tmin,tmax,tdt):
     os.chdir(workdir)
@@ -217,8 +208,7 @@ def submit_dens(currdir,workdir,f_name,tmin,tmax,tdt):
     fw.close()
     subprocess.call(["sbatch",rev_fname])
     os.chdir(currdir)
-#------------------------------------------------------------------
-        
+#------------------------------------------------------------------     
 # if __name__
 if __name__ == '__main__':
     main()
