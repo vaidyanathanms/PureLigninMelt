@@ -183,11 +183,10 @@ def find_tpr_trr_files(dum_inpdir):
         
     return tpr_fname, trr_fname
 #------------------------------------------------------------------    
+# Create index files for GROMACS: Rg/ShapeFactor/SegRg
+def create_rggrps_inp(destdir,monlist,atomlist,nchains):
 
-# Create index files for GROMACS
-def create_anagrps_inp(destdir,monlist,atomlist,nchains):
-
-    fname = destdir + '/chaininp.inp'
+    fname = destdir + '/rgchaininp.inp'
     frglist = open(fname,'w')
     mon_init = 1
     for ncnt in range(nchains):
@@ -203,6 +202,79 @@ def create_anagrps_inp(destdir,monlist,atomlist,nchains):
     
     frglist.close()        
 #------------------------------------------------------------------    
+# Create index files for GROMACS: RDFs
+def create_rdfgrps_inp(destdir,monlist,atomlist,nchains):
+
+    #Interchain-Intrachain
+    mon_init = 1
+    for ncnt in range(nchains):
+        fname = destdir + '/rdf' + str[ncnt+1] + '_chain.inp'
+        frdflist = open(fname,'w')
+        mon_fin = mon_init + monlist[ncnt] - 1
+        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
+                                          mon_init,"to", mon_fin))
+        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
+                                          mon_init,"to", mon_fin))
+        frdflist.write("%s %d %s %d\n" %("name C1 and not resindex"\
+                                          ,mon_init,"to", mon_fin))
+        frdflist.close()        
+        mon_init = mon_fin + 1
+
+    #HH/HG/HS
+    with open(destdir + '/Hall.inp') as frdflist:
+        frdflist.write("%s;\n" %("resname PHP and name C1"))
+        frdflist.write("%s;\n" %("resname PHP and name C1"))
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s\n" %("resname SYR and name C1"))
+        
+    #GH/GG/GS
+    with open(destdir + '/Hall.inp') as frdflist:
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s;\n" %("resname PHP and name C1"))
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s\n" %("resname SYR and name C1"))
+
+    #SH/SG/SS
+    with open(destdir + '/Hall.inp') as frdflist:
+        frdflist.write("%s;\n" %("resname SYR and name C1"))
+        frdflist.write("%s;\n" %("resname PHP and name C1"))
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s\n" %("resname SYR and name C1"))
+
+    #FF/FP/FG/FS
+    with open(destdir + '/Hall.inp') as frdflist:
+        frdflist.write("%s;\n" %("resname FERUT and name C1"))
+        frdflist.write("%s;\n" %("resname FERUT and name C1"))
+        frdflist.write("%s;\n" %("resname PCA and name C1"))
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s\n" %("resname SYR and name C1"))
+
+    #PF/PP/PG/PS
+    with open(destdir + '/Hall.inp') as frdflist:
+        frdflist.write("%s;\n" %("resname PCA and name C1"))
+        frdflist.write("%s;\n" %("resname FERUT and name C1"))
+        frdflist.write("%s;\n" %("resname PCA and name C1"))
+        frdflist.write("%s;\n" %("resname GUAI and name C1"))
+        frdflist.write("%s\n" %("resname SYR and name C1"))
+#------------------------------------------------------------------ 
+
+# Create index files for GROMACS: HBs
+def create_hbgrps_inp(destdir,monlist,atomlist,nchains):
+    #Interchain-Intrachain
+    mon_init = 1
+    for ncnt in range(nchains):
+        fname = destdir + '/H' + str[ncnt+1] + '_chain.inp'
+        frdflist = open(fname,'w')
+        mon_fin = mon_init + monlist[ncnt] - 1
+        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
+                                          mon_init,"to", mon_fin))
+        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
+                                          mon_init,"to", mon_fin))
+        frdflist.write("%s %d %s %d\n" %("name C1 and not resindex"\
+                                          ,mon_init,"to", mon_fin))
+        frdflist.close()        
+        mon_init = mon_fin + 1
+
 
 # Run analysis - OBSOLETE on Feb-14-2022. Added to gmx_functions.py
 def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\
