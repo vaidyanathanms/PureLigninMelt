@@ -20,19 +20,21 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 1 # Calculate rg
-seg_rgcalc = 1 # Calculate segmental rg
+rg_calc    = 0 # Calculate rg
+seg_rgcalc = 0 # Calculate segmental rg
 msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
 shape_calc = 0 # Calculate shape factor
-tg_calc    = 1 # Calculate densities for Tg
+tg_calc    = 0 # Calculate densities for Tg
+hb_calc    = 0 # Calculate hydrogen bonding
 #------------------------------------------------------------------
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
+expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0]# dispersity values
+disp_arr  = [1.8]# dispersity values
 run_arr   = [2]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
@@ -75,7 +77,10 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
         print(poly_dir, " does not exist")
         continue
 
-    poly_dir = poly_dir + '/pdi_' + str(disp_arr[disp_val])
+    if expts:
+        poly_dir = poly_dir + '/expts'
+    else:
+        poly_dir = poly_dir + '/pdi_' + str(disp_arr[disp_val])
     if not os.path.isdir(poly_dir):
         print(poly_dir, " does not exist")
         continue
@@ -119,10 +124,11 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             print('Analyzing: ', biomass,inp_type,'run_'+\
                   str(run_arr[casenum]), 'T_'+str(curr_temp))
             
+            # ------ Find gro/psf/tpr/trr files ------------------
             if psfflag == -1 and seg_rgcalc == 1:
                 cpy_gro_top_files(temp_dir,workdir1+'/init_files')
                 psfflag = check_psf(workdir1) # redo to make sure
-
+            
             conffile,topfile = check_inp_files(temp_dir,'None')
             mon_list,at_list = count_nchains(temp_dir,conffile,\
                                              nchains)
@@ -131,9 +137,17 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 print("ERROR: Did not find tpr/trr file...")
                 continue
 
-            create_anagrps_inp(temp_dir,mon_list,at_list,nchains)
+            #-------- Create groups ------------------------------
+            if rg_calc or seg_rgcalc or shape_calc: # Rg/shape
+                create_rggrps_inp(temp_dir,mon_list,at_list,nchains)
 
-            # Copy and set scripts for running
+            if rdf_calc: # RDFs
+                create_rdfgrps_inp(temp_dir,mon_list,at_list,nchains)
+                
+            if hb_calc: #HBs
+                create_hbgrps_inp(temp_dir,mon_list,at_list,nchains)
+
+            #--------- Copy and set scripts for running ----------
             if rg_calc: #Rg Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'rg')
@@ -143,15 +157,22 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             if msd_calc: # MSD Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'msdcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'msd')
-            if rdf_calc: # RDF Calculation
-                set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
-                            trajfile,tprfile,conffile,curr_temp,'rdf')
+
             if shape_calc: # Shape Factor Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'shapecomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'shape')
 
-            os.chdir(temp_dir) # Change to temperature directory
+            if rdf_calc: # Radial Distribution Calculation
+                set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'rdf')
+
+            if hb_calc: # Hydrogen Bonding Calculation
+                set_jobfile(nchains,sh_dir,temp_dir,'hbcomp_pyinp.sh',\
+                            trajfile,tprfile,conffile,curr_temp,'hb')
+
+            # ------ Run jobs if necessary -------------------------
             if run_all:
+                os.chdir(temp_dir) # Change to temperature directory
                 if rg_calc:
                     print("Running Rg calculation")
                     subprocess.call(["sbatch","rgcomp.sh"])
@@ -162,11 +183,14 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 if msd_calc:
                     print("Running MSD calculation")
                     subprocess.call(["sbatch","msdcomp.sh"])
-                if rdf_calc:
-                    print("Running RDF calculation")
-                    subprocess.call(["sbatch","rdfcomp.sh"])
                 if shape_calc:
                     print("Running shape factor calculation")
                     subprocess.call(["sbatch","shapecomp.sh"])
+                if rdf_calc:
+                    print("Running RDF calculation")
+                    subprocess.call(["sbatch","rdfcomp.sh"])
+                if hb_calc:
+                    print("Running #HB calculation")
+                    subprocess.call(["sbatch","rdfcomp.sh"])
             print("Completed T = ", curr_temp)
-            os.chdir(main_dir) #main dir
+            os.chdir(main_dir) #main dir (failsafe)
