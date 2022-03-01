@@ -27,18 +27,18 @@ echo $PWD
 rgout="traj_npt_main.trr"; allresultdir="all_results"
 nchains=py_nchains
 
-
-if [ ! test -f "enermin.tpr"] && [ ! test -f "traj_npt_main_nojump_100ps.trr"]; then
-    printf "tpr/trr files not found"
-    exit 1
-fi
-
+# Search for 100 ps interval file. If not present, create it
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
-wait
+    if ! test -f "npt_main.tpr"; then
+	printf "tpr/trr files not found"
+	exit 1
+    else
+	printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+	wait
 fi
 
-if ! test -f "../init_files/L.psf"; then
+# Search for compRg.psf in the superdirectory
+if ! test -f "../init_files/compRg.psf"; then
     printf "psf file not found"
     exit 1
 fi
@@ -59,6 +59,3 @@ mv rg_allsegs.dat ${allresultdir}
 mv RgvsN.dat ${allresultdir}
 
 printf "End of segmental Rg calculations.."
-
-
-
