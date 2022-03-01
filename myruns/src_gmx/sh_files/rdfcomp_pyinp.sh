@@ -2,7 +2,7 @@
 
 #SBATCH -A bsd
 #SBATCH -p batch
-#SBATCH -t 0-00:30:00
+#SBATCH -t 0-05:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=24
@@ -11,7 +11,9 @@
 #SBATCH -o outdir/out.%J
 #SBATCH -e outdir/err.%J
 
-module load gromacs
+module load PE-gnu/3.0
+module load cuda/10.1
+module load gromacs/2020.6
 
 export GMX_MAXBACKUP=-1;
 export OMP_NUM_THREADS=24;
@@ -19,48 +21,51 @@ export OMP_NUM_THREADS=24;
 echo "begin job.."
 echo $PWD
 
-
 # Inputs
-msdout="msd_nptmain"; outdir="msdanalysis"
+rdfout="rdf_nptmain"; rdfout_dir="all_rdfs"
 nchains=py_nchains
+printf "Computing RDF of chains"
+mkdir -p ${rdfout_dir}
 
-if ! test -f "py_trajfile"; then
-    printf "py_trajfile not found"
-    exit 1
-elif ! test -f "py_tprfile"; then
-    printf "py_tprfile not found"
-    exit 1
-elif ! test -f "py_conffile"; then
-    printf "initconf not found"
-    exit 1
-elif ! test -f "chaininp.inp"; then
-    echo "chaininp.inp not found"
-    exit 1
-fi
-	
-
-# Make Index files
-if ! test -f "chindx.ndx"; then 
-    srun gmx select -f py_conffile -s py_tprfile -sf chaininp.inp -on chindx.ndx
-fi
-wait
-
-# Compute Rg of chains
-printf "Computing Rg of chains"
-
-if [ ! -d ${outdir} ]; then
-    mkdir -p ${outdir}
-fi
-wait
-
+# Compute inter/intra RDF
 for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
 do
-    printf "${chcnt_i}" | srun gmx msd -f py_trajfile -s py_tprfile -n chindx.ndx -o ${msdout}_${chcnt_i}.xvg &
+    srun gmx rdf -f py_trajfile -s py_tprfile -sf rdf${chcnt_i}_chain.inp -o ${rdfout}_${chcnt_i}.xvg
+wait
 done
+
+mv ${rdfout}_*.xvg ${rdfout_dir}
+mv rdf*_chain.inp ${rdfout_dir}
 wait
 
-mv ${msdout}_*.xvg ${outdir}
-cp chainlist.dat ${outdir}
-cp chindx.ndx ${outdir}
+# Compute H-H/H-G/H-S
+srun gmx rdf -f py_trajfile -s py_tprfile -sf Hall.inp -o Hall.xvg
+mv Hall.xvg ${rdfout_dir}
+mv Hall.inp ${rdfout_dir}
+wait
 
-printf "End of Rg calculations.."
+# Compute G-H/G-G/G-S
+srun gmx rdf -f py_trajfile -s py_tprfile -sf Gall.inp -o Gall.xvg
+mv Gall.xvg ${rdfout_dir}
+mv Gall.inp ${rdfout_dir}
+wait
+
+# Compute S-H/S-G/S-S
+srun gmx rdf -f py_trajfile -s py_tprfile -sf Sall.inp -o Sall.xvg
+mv Sall.xvg ${rdfout_dir}
+mv Sall.inp ${rdfout_dir}
+wait
+
+# Compute FA-FA/FA-PCA/FA-G/FA-S
+srun gmx rdf -f py_trajfile -s py_tprfile -sf Fall.inp -o Fall.xvg
+mv Fall.xvg ${rdfout_dir}
+mv Fall.inp ${rdfout_dir}
+wait
+
+# Compute PCA-FA/PCA-PCA/PCA-G/PCA-S
+srun gmx rdf -f py_trajfile -s py_tprfile -sf Pall.inp -o Pall.xvg
+mv Pall.xvg ${rdfout_dir}
+mv Pall.inp ${rdfout_dir}
+wait
+
+printf "End of RDF calculations.."
