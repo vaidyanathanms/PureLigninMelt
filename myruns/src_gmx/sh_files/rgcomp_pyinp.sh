@@ -28,25 +28,24 @@ eigout="eig_nptmain"
 nchains=py_nchains
 
 # Make Index files
-if ! test -f "chaininp.inp"; then
-    echo "chaininp.inp not found"
+if ! test -f "rgchaininp.inp"; then
+    echo "rgchaininp.inp not found"
     exit 1
 fi
 
 if ! test -f "chindx.ndx"; then 
-    srun gmx select -f py_conffile -s py_tprfile -sf chaininp.inp -on chindx.ndx
+    srun gmx select -f py_conffile -s py_tprfile -sf rgchaininp.inp -on chindx.ndx
 fi
 wait
 
-# Search for tpr/trr files
-if ! test -f "enermin.tpr"  && ! test -f "traj_npt_main.trr"; then
-    printf "tpr/trr files not found"
-    exit 1
-fi
-
+# Search for 100 ps interval file. If not present, create it
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
-wait
+    if ! test -f "npt_main.tpr"; then
+	printf "tpr/trr files not found"
+	exit 1
+    else
+	printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+	wait
 fi
 
 # Compute Rg of chains
@@ -67,6 +66,7 @@ mv ${rgout}_*.xvg ${allresultdir}
 mv ${eigout}_*.xvg ${allresultdir}
 cp chainlist.dat ${allresultdir}
 cp chindx.ndx ${allresultdir}
+cp rgchaininp.inp ${allresultdir}
 printf "End of Rg calculations.."
 
 
