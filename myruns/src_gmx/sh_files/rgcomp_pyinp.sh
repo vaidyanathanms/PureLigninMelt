@@ -48,7 +48,7 @@ if ! test -f "traj_npt_main_nojump_100ps.trr"; then
 	wait
 fi
 
-# Compute Rg of chains
+# Compute Rg/eigenvalues of chains
 printf "Computing Rg of chains"
 
 mkdir -p ${allresultdir}
