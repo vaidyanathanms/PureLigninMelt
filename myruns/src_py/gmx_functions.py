@@ -20,13 +20,12 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 0 # Calculate rg
+rg_calc    = 0 # Calculate rg/shape factor
 seg_rgcalc = 0 # Calculate segmental rg
-msd_calc   = 0 # Calculate msd
 rdf_calc   = 0 # Calculate rdf
-shape_calc = 0 # Calculate shape factor
 tg_calc    = 0 # Calculate densities for Tg
 hb_calc    = 0 # Calculate hydrogen bonding
+msd_calc   = 0 # Calculate msd
 #------------------------------------------------------------------
 
 # Input Data
@@ -138,7 +137,7 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 continue
 
             #-------- Create groups ------------------------------
-            if rg_calc or seg_rgcalc or shape_calc: # Rg/shape
+            if rg_calc or seg_rgcalc: # Rg/shape
                 create_rggrps_inp(temp_dir,mon_list,at_list,nchains)
 
             if rdf_calc: # RDFs
@@ -157,10 +156,6 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             if msd_calc: # MSD Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'msdcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'msd')
-
-            if shape_calc: # Shape Factor Calculation
-                set_jobfile(nchains,sh_dir,temp_dir,'shapecomp_pyinp.sh',\
-                            trajfile,tprfile,conffile,curr_temp,'shape')
 
             if rdf_calc: # Radial Distribution Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
@@ -183,9 +178,6 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 if msd_calc:
                     print("Running MSD calculation")
                     subprocess.call(["sbatch","msdcomp.sh"])
-                if shape_calc:
-                    print("Running shape factor calculation")
-                    subprocess.call(["sbatch","shapecomp.sh"])
                 if rdf_calc:
                     print("Running RDF calculation")
                     subprocess.call(["sbatch","rdfcomp.sh"])
