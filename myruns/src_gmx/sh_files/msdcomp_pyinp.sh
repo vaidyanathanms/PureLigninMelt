@@ -36,17 +36,15 @@ if ! test -f "chindx.ndx"; then
 fi
 wait
 
-# Search for tpr/trr files
-if ! test -f "enermin.tpr"  && ! test -f "traj_npt_main.trr"; then
-    printf "tpr/trr files not found"
-    exit 1
-fi
-
+# Search for 100 ps interval file. If not present, create it
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
-    printf "0" | srun gmx trjconv -s enermin.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
-wait
+    if ! test -f "npt_main.tpr"; then
+	printf "tpr/trr files not found"
+	exit 1
+    else
+	printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
+	wait
 fi
-
 
 # Compute MSD of chains
 printf "Computing MSD of chains"

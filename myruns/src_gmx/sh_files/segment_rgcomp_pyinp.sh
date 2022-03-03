@@ -35,6 +35,7 @@ if ! test -f "traj_npt_main_nojump_100ps.trr"; then
     else
 	printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
 	wait
+    fi
 fi
 
 # Search for compRg.psf in the superdirectory
