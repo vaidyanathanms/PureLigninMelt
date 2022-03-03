@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -A bsd
-#SBATCH -p batch
+#SBATCH -p burst
 #SBATCH -t 0-05:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -30,18 +30,46 @@ mkdir -p ${hbout_dir}
 # Compute inter/intra HB
 for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
 do
-    srun gmx hbond -f py_trajfile -s py_tprfile -sf hb${chcnt_i}_chain.inp -o ${hbout}_${chcnt_i}.xvg
+    # First make corresponding index file
+    srun gmx select -s py_tprfile -on hb${chcnt_i}.ndx -sf hb${chcnt_i}.inp
+    wait
+    # Now compute intra and inter for each chain
+    echo "0 1" | srun gmx hbond -f py_trajfile -s py_tprfile -n hb${chcnt_i}.ndx -num ${hbout}_intra_${chcnt_i}.xvg
+wait
+    echo "0 2" | srun gmx hbond -f py_trajfile -s py_tprfile -n hb${chcnt_i}.ndx -num ${hbout}_inter_${chcnt_i}.xvg
 wait
 done
 
 mv ${hbout}_*.xvg ${hbout_dir}
-mv hb*_chain.inp ${hbout_dir}
+mv hb*.ndx ${hbout_dir}
+mv hb*.inp ${hbout_dir}
 wait
 
-# Compute FA-FA/FA-PCA/FA-G/FA-S
-srun gmx hbond -f py_trajfile -s py_tprfile -sf hb_f.inp -o hb_f.xvg
-mv hb_f.xvg ${hbout_dir}
-mv hb_f.inp ${hbout_dir}
+# Compute FA-FA/FA-PCA/FA-H/FA-G/FA-S
+# Make index files
+if ! test -f resinp.ndx; then
+    if ! test -f "resinp.inp"; then
+	echo "resinp.inp for residue indices not found!"
+	exit 1
+    else
+	srun gmx select -s py_tprfile -on resinp.ndx -sf resinp.inp
+	wait
+fi
+
+# Compute HBs
+echo "0 0" | srun gmx hbond -f py_trajfile -s py_tprfile -n resinp.ndx -num hb_ff.xvg
+wait
+echo "0 1" | srun gmx hbond -f py_trajfile -s py_tprfile -n resinp.ndx -num hb_fp.xvg
+wait
+echo "0 2" | srun gmx hbond -f py_trajfile -s py_tprfile -n resinp.ndx -num hb_fh.xvg
+wait
+echo "0 3" | srun gmx hbond -f py_trajfile -s py_tprfile -n resinp.ndx -num hb_fg.xvg
+wait
+echo "0 4" | srun gmx hbond -f py_trajfile -s py_tprfile -n resinp.ndx -num hb_fs.xvg
+wait
+mv hb_f*.xvg ${hbout_dir}
+mv resinp.inp ${hbout_dir}
+mv resinp.ndx ${hbout_dir}
 wait
 
 printf "End of HB calculations.."

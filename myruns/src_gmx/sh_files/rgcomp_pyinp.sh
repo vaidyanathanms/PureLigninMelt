@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -A bsd
-#SBATCH -p batch
+#SBATCH -p burst
 #SBATCH -t 0-01:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
