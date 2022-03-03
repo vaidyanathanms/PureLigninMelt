@@ -12,7 +12,7 @@ Steps to run the systems:
 
 - Step2: Use myruns/myruns/tg_input.py and set the required temperature range to generate lignin melt simulations at different temperature.
 
-- Step3: Use gmx_functions.py to compute Rg/SegmentalRg/MSD/ChainMSD
+- Step3: Use gmx_functions.py to compute Rg/SegmentalRg/MSD/ChainMSD/RDF/HBs
 
 - Step4: Use plotdata.py to plot data and to compute Rg-N scaling and Tg values.
 
