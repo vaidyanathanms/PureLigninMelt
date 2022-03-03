@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Aux python codes for generating GROMACS inputs for analysis
 # Ver: May-11-2021
 #------------------------------------------------------------------
@@ -21,8 +20,7 @@ def gencpy(dum_maindir,dum_destdir,fylname):
     srcfyl = dum_maindir + '/' + fylname
 
     if not os.path.exists(srcfyl):
-        print('ERROR: ', srcfyl, 'not found')
-        return
+        raise RuntimeError('ERROR: ' + srcfyl + ' not found')
 
     desfyl = dum_destdir + '/' + fylname
     shutil.copy2(srcfyl,desfyl)
@@ -71,7 +69,7 @@ def check_inp_files(dum_inpdir,top_name):
         print('More than one topology file found. Using latest')
         fnames = glob.glob(dum_inpdir+'/*.top')
         topol_fname = max(fnames, key=os.path.getmtime)
-
+    
     return conf_fname, topol_fname
 #------------------------------------------------------------------
 
@@ -82,13 +80,14 @@ def count_nchains(destdir,inpname,inp_nchains):
     if not os.path.exists(inpname):
         raise RuntimeError(inpname," not found in ",destdir)
     
+    print(inpname)
     ch_id   = 0 # chain ID to distinguish chain beginning
     refmon_num = -1 # dummy value
     mons_perchain_list = []; atoms_perchain_list = []
     fwrlist = open(destdir + '/chainlist.dat','w')
     fwrlist.write('%s\t%s\t%s\n' %('Chain_ID','Num_mons','Num_atoms'))
     with open(inpname) as finp:
-        next(finp) # skip first line
+        finp.readline() #skip first line
         tot_natoms = int(finp.readline()) # total num atoms
         for line in finp:
             line = line.rstrip('/n')
@@ -186,6 +185,7 @@ def find_tpr_trr_files(dum_inpdir):
         
     return tpr_fname, trr_fname
 #------------------------------------------------------------------    
+
 # Create index files for GROMACS
 def create_anagrps_inp(destdir,monlist,atomlist,nchains):
 
@@ -205,9 +205,10 @@ def create_anagrps_inp(destdir,monlist,atomlist,nchains):
     
     frglist.close()        
 #------------------------------------------------------------------    
-# Run analysis
-def run_analysis(nchains,rgflag,msdflag,rdfflag,headdir,destdir,\
-                 trajfile,tprfile,conffile,temp):
+
+# Run analysis - OBSOLETE on Feb-14-2022. Added to gmx_functions.py
+def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\
+                 ,headdir,destdir,trajfile,tprfile,conffile,temp):
 
     if rgflag:
         fname = 'rgcomp_pyinp.sh'
@@ -218,13 +219,19 @@ def run_analysis(nchains,rgflag,msdflag,rdfflag,headdir,destdir,\
     if rdfflag:
         fname = 'rdfcomp_pyinp.sh'
         replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'rdf')
+    if segrgflag:
+        fname = 'segment_rgcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'segment_rgcomp_pyinp')
+    if shapeflag:
+        fname = 'segment_rgcomp_pyinp.sh'
+        replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,'shapecomp_pyinp')
 #--------------------------------------------------------------------
 
-# Replace strings in job files
-def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
+# Replace strings and set job files
+def set_jobfile(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr):
 
     if not os.path.exists(headdir + '/' + fname):
-        raise RunTimeError(fname + ' not found in ' +headdir)
+        raise RuntimeError(fname + ' not found in ' +headdir)
 
     jobname  = anastr + '_T_' + str(temp)
     trajfile = split_and_return_filename(trajfile)
@@ -235,11 +242,17 @@ def replace_strings(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp
     rev_fname = fname.replace('_pyinp','')
     fr  = open(destdir + '/' + fname,'r')
     fw  = open(destdir + '/' + rev_fname,'w')
-    fid = fr.read().replace("py_nchains",str(nchains)).\
-          replace("py_trajfile",trajfile).\
-          replace("py_tprfile",tprfile).\
-          replace("py_conffile",conffile).\
-          replace("py_jname",jobname)
+    if anastr == 'rho':
+        fid = fr.read().replace("py_nchains",str(nchains)).\
+              replace("py_jname",jobname).\
+              replace("py_Tinit",str(temp[0])).\
+              replace("py_Tfin",str(temp[1])).\
+              replace("py_dT",str(temp[2]))
+    else:
+        fid = fr.read().replace("py_nchains",str(nchains)).\
+              replace("py_tprfile",tprfile).\
+              replace("py_conffile",conffile).\
+              replace("py_jname",jobname)
     fw.write(fid)
     fw.close()
     fr.close()
@@ -251,8 +264,8 @@ def split_and_return_filename(inp_fylename):
     outstr = inp_fylename.split('/')
     return outstr[len(outstr)-1]
 #--------------------------------------------------------------------
-=======
-# Generate GROMACS inputs for analysis
-# Ver: May-11-2021
 
->>>>>>> origin/master
+# if __name__ 
+if __name__ == 'main':
+   main()
+#--------------------------------------------------------------------
