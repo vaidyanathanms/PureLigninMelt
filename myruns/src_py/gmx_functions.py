@@ -35,9 +35,9 @@ inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]# dispersity values
 run_arr   = [2]  # run number for a given dispersity
-temp_min  = 250  # Minimum temperature
+temp_min  = 350  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 10   # Temperature dt
+temp_dt   = 20   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
 wat_name  = 'None' # add this later
@@ -59,6 +59,8 @@ scr_dir  = scr_dir + '/Glassy_lignin'
 if not os.path.isdir(scr_dir):
     os.mkdir(scr_dir)
 #------------------------------------------------------------------
+
+all_calc  = [rg_calc, seg_rgcalc, rdf_calc, hb_calc, msd_calc]
 
 # Main code
 for disp_val in range(len(disp_arr)): # loop in polydisperse array
