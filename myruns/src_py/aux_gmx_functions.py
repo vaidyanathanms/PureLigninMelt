@@ -208,7 +208,7 @@ def create_rdfgrps_inp(destdir,monlist,atomlist,nchains):
     #Inter/Intrachain RDF
     mon_init = 1
     for ncnt in range(nchains):
-        fname = destdir + '/rdf' + str[ncnt+1] + '.inp'
+        fname = destdir + '/rdf' + str(ncnt+1) + '.inp'
         frdflist = open(fname,'w')
         mon_fin = mon_init + monlist[ncnt] - 1
         frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
@@ -221,41 +221,41 @@ def create_rdfgrps_inp(destdir,monlist,atomlist,nchains):
         mon_init = mon_fin + 1
 
     #HH/HG/HS
-    with open(destdir + '/Hall.inp') as frdflist:
-        frdflist.write("%s;\n" %("resname PHP and name C1"))
-        frdflist.write("%s;\n" %("resname PHP and name C1"))
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s\n" %("resname SYR and name C1"))
+    with open(destdir + '/Hall.inp','w') as fhgrlist:
+        fhgrlist.write("%s;\n" %("resname PHP and name C1"))
+        fhgrlist.write("%s;\n" %("resname PHP and name C1"))
+        fhgrlist.write("%s;\n" %("resname GUAI and name C1"))
+        fhgrlist.write("%s\n" %("resname SYR and name C1"))
         
     #GH/GG/GS
-    with open(destdir + '/Hall.inp') as frdflist:
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s;\n" %("resname PHP and name C1"))
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s\n" %("resname SYR and name C1"))
+    with open(destdir + '/Gall.inp','w') as fggrlist:
+        fggrlist.write("%s;\n" %("resname GUAI and name C1"))
+        fggrlist.write("%s;\n" %("resname PHP and name C1"))
+        fggrlist.write("%s;\n" %("resname GUAI and name C1"))
+        fggrlist.write("%s\n" %("resname SYR and name C1"))
 
     #SH/SG/SS
-    with open(destdir + '/Hall.inp') as frdflist:
-        frdflist.write("%s;\n" %("resname SYR and name C1"))
-        frdflist.write("%s;\n" %("resname PHP and name C1"))
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s\n" %("resname SYR and name C1"))
+    with open(destdir + '/Sall.inp','w') as fsgrlist:
+        fsgrlist.write("%s;\n" %("resname SYR and name C1"))
+        fsgrlist.write("%s;\n" %("resname PHP and name C1"))
+        fsgrlist.write("%s;\n" %("resname GUAI and name C1"))
+        fsgrlist.write("%s\n" %("resname SYR and name C1"))
 
     #FF/FP/FG/FS
-    with open(destdir + '/Hall.inp') as frdflist:
-        frdflist.write("%s;\n" %("resname FERUT and name C1"))
-        frdflist.write("%s;\n" %("resname FERUT and name C1"))
-        frdflist.write("%s;\n" %("resname PCA and name C1"))
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s\n" %("resname SYR and name C1"))
+    with open(destdir + '/Fall.inp','w') as ffgrlist:
+        ffgrlist.write("%s;\n" %("resname FERUT and name C1"))
+        ffgrlist.write("%s;\n" %("resname FERUT and name C1"))
+        ffgrlist.write("%s;\n" %("resname PCA and name C1"))
+        ffgrlist.write("%s;\n" %("resname GUAI and name C1"))
+        ffgrlist.write("%s\n" %("resname SYR and name C1"))
 
     #PF/PP/PG/PS
-    with open(destdir + '/Hall.inp') as frdflist:
-        frdflist.write("%s;\n" %("resname PCA and name C1"))
-        frdflist.write("%s;\n" %("resname FERUT and name C1"))
-        frdflist.write("%s;\n" %("resname PCA and name C1"))
-        frdflist.write("%s;\n" %("resname GUAI and name C1"))
-        frdflist.write("%s\n" %("resname SYR and name C1"))
+    with open(destdir + '/Pall.inp','w') as fpgrlist:
+        fpgrlist.write("%s;\n" %("resname PCA and name C1"))
+        fpgrlist.write("%s;\n" %("resname FERUT and name C1"))
+        fpgrlist.write("%s;\n" %("resname PCA and name C1"))
+        fpgrlist.write("%s;\n" %("resname GUAI and name C1"))
+        fpgrlist.write("%s\n" %("resname SYR and name C1"))
 #------------------------------------------------------------------ 
 
 # Create index files for GROMACS: HBs
@@ -263,7 +263,7 @@ def create_hbgrps_inp(destdir,monlist,atomlist,nchains):
     #Inter/Intrachain HB
     mon_init = 1
     for ncnt in range(nchains):
-        fname = destdir + '/hb' + str[ncnt+1] + '.inp'
+        fname = destdir + '/hb' + str(ncnt+1) + '.inp'
         fhblist = open(fname,'w')
         mon_fin = mon_init + monlist[ncnt] - 1
         fhblist.write("%s %d %s %d;\n" %("resindex",mon_init,\
@@ -272,11 +272,11 @@ def create_hbgrps_inp(destdir,monlist,atomlist,nchains):
                                           "to", mon_fin))
         fhblist.write("%s %d %s %d\n" %("not resindex",mon_init,\
                                         "to", mon_fin))
-        frdflist.close()        
+        fhblist.close()        
         mon_init = mon_fin + 1
 
     #FA-FA/FA-PCA/FA-G/FA-S
-    with open(destdir + '/resinp.inp') as flist:
+    with open(destdir + '/resinp.inp','w') as flist:
         flist.write("%s;\n" %("resname FERUT"))
         flist.write("%s;\n" %("resname PCA"))
         flist.write("%s;\n" %("resname PHP"))
