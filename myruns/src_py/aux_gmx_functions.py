@@ -155,7 +155,7 @@ def retrieve_id(inpstr):
         raise RuntimeError('Error - check gro file')
 
     return int(match[0])
-#------------------------------------------------------------------  
+#------------------------------------------------------------------ 
 
 # Find trajector and tpr files
 def find_tpr_trr_files(dum_inpdir):
@@ -205,10 +205,10 @@ def create_rggrps_inp(destdir,monlist,atomlist,nchains):
 # Create index files for GROMACS: RDFs
 def create_rdfgrps_inp(destdir,monlist,atomlist,nchains):
 
-    #Interchain-Intrachain
+    #Inter/Intrachain RDF
     mon_init = 1
     for ncnt in range(nchains):
-        fname = destdir + '/rdf' + str[ncnt+1] + '_chain.inp'
+        fname = destdir + '/rdf' + str[ncnt+1] + '.inp'
         frdflist = open(fname,'w')
         mon_fin = mon_init + monlist[ncnt] - 1
         frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
@@ -260,21 +260,29 @@ def create_rdfgrps_inp(destdir,monlist,atomlist,nchains):
 
 # Create index files for GROMACS: HBs
 def create_hbgrps_inp(destdir,monlist,atomlist,nchains):
-    #Interchain-Intrachain
+    #Inter/Intrachain HB
     mon_init = 1
     for ncnt in range(nchains):
-        fname = destdir + '/H' + str[ncnt+1] + '_chain.inp'
-        frdflist = open(fname,'w')
+        fname = destdir + '/hb' + str[ncnt+1] + '.inp'
+        fhblist = open(fname,'w')
         mon_fin = mon_init + monlist[ncnt] - 1
-        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
-                                          mon_init,"to", mon_fin))
-        frdflist.write("%s %d %s %d;\n" %("name C1 and resindex",\
-                                          mon_init,"to", mon_fin))
-        frdflist.write("%s %d %s %d\n" %("name C1 and not resindex"\
-                                          ,mon_init,"to", mon_fin))
+        fhblist.write("%s %d %s %d;\n" %("resindex",mon_init,\
+                                          "to", mon_fin))
+        fhblist.write("%s %d %s %d;\n" %("resindex",mon_init,\
+                                          "to", mon_fin))
+        fhblist.write("%s %d %s %d\n" %("not resindex",mon_init,\
+                                        "to", mon_fin))
         frdflist.close()        
         mon_init = mon_fin + 1
 
+    #FA-FA/FA-PCA/FA-G/FA-S
+    with open(destdir + '/resinp.inp') as flist:
+        flist.write("%s;\n" %("resname FERUT"))
+        flist.write("%s;\n" %("resname PCA"))
+        flist.write("%s;\n" %("resname PHP"))
+        flist.write("%s;\n" %("resname GUAI"))
+        flist.write("%s\n" %("resname SYR"))
+#------------------------------------------------------------------ 
 
 # Run analysis - OBSOLETE on Feb-14-2022. Added to gmx_functions.py
 def run_analysis(nchains,rgflag,msdflag,rdfflag,segrgflag,shapeflag\

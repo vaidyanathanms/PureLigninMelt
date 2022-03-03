@@ -20,11 +20,11 @@ print("Version: May-11-2021")
 #------------------------------------------------------------------
 
 # Input Keys
-rg_calc    = 0 # Calculate rg/shape factor
-seg_rgcalc = 0 # Calculate segmental rg
-rdf_calc   = 0 # Calculate rdf
+rg_calc    = 1 # Calculate rg/shape factor
+seg_rgcalc = 1 # Calculate segmental rg
+rdf_calc   = 1 # Calculate rdf
 tg_calc    = 0 # Calculate densities for Tg
-hb_calc    = 0 # Calculate hydrogen bonding
+hb_calc    = 1 # Calculate hydrogen bonding
 msd_calc   = 0 # Calculate msd
 #------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.8]# dispersity values
 run_arr   = [2]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
-temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
+temp_max  = 561  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
@@ -183,6 +183,7 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                     subprocess.call(["sbatch","rdfcomp.sh"])
                 if hb_calc:
                     print("Running #HB calculation")
-                    subprocess.call(["sbatch","rdfcomp.sh"])
+                    subprocess.call(["sbatch","hbcomp.sh"])
+
             print("Completed T = ", curr_temp)
             os.chdir(main_dir) #main dir (failsafe)
