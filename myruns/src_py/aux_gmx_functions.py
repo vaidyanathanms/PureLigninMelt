@@ -336,6 +336,34 @@ def set_jobfile(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,ana
     fr.close()
 #--------------------------------------------------------------------
 
+# Replace strings and set job files for multicase
+def set_mult_jobfile(nchains,headdir,destdir,fname,trajfile,tprfile,conffile,temp,anastr,rgf,rdff,hbf,segrgf,msdf):
+
+    if not os.path.exists(headdir + '/' + fname):
+        raise RuntimeError(fname + ' not found in ' +headdir)
+  
+    gencpy(headdir,destdir,fname)
+    rev_fname = fname.replace('_pyinp','')
+    fr  = open(destdir + '/' + fname,'r')
+    fw  = open(destdir + '/' + rev_fname,'w')
+    jobname  = anastr + '_T_' + str(temp)
+    trajfile = split_and_return_filename(trajfile)
+    tprfile  = split_and_return_filename(tprfile)
+    conffile = split_and_return_filename(conffile)
+    fid = fr.read().replace("py_nchains",str(nchains)).\
+          replace("py_tprfile",tprfile).\
+          replace("py_conffile",conffile).\
+          replace("py_jname",jobname).\
+          replace("py_rgflag",str(bool(rgf)).lower()).\
+          replace("py_rdfflag",str(bool(rdff)).lower()).\
+          replace("py_hbflag",str(bool(hbf)).lower()).\
+          replace("py_segrgflag",str(bool(segrgf)).lower()).\
+          replace("py_msdflag",str(bool(msdf)).lower())
+    fw.write(fid)
+    fw.close()
+    fr.close()
+#--------------------------------------------------------------------
+
 # Split and return last value from strings for finding files
 def split_and_return_filename(inp_fylename):
 

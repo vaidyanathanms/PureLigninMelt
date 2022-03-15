@@ -23,7 +23,7 @@ print("Version: May-11-2021")
 rg_calc    = 1 # Calculate rg/shape factor
 seg_rgcalc = 1 # Calculate segmental rg
 rdf_calc   = 1 # Calculate rdf
-tg_calc    = 0 # Calculate densities for Tg
+tg_calc    = 1 # Calculate densities for Tg
 hb_calc    = 1 # Calculate hydrogen bonding
 msd_calc   = 0 # Calculate msd
 #------------------------------------------------------------------
@@ -33,11 +33,11 @@ run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
 expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.8]# dispersity values
+disp_arr  = [1.0,1.8]# dispersity values
 run_arr   = [2]  # run number for a given dispersity
-temp_min  = 350  # Minimum temperature
+temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 20   # Temperature dt
+temp_dt   = 10   # Temperature dt
 nchains   = 20   # Number of chains - cross check from conf file
 solv_name = 'None' # add this later
 wat_name  = 'None' # add this later
@@ -60,7 +60,9 @@ if not os.path.isdir(scr_dir):
     os.mkdir(scr_dir)
 #------------------------------------------------------------------
 
-all_calc  = [rg_calc, seg_rgcalc, rdf_calc, hb_calc, msd_calc]
+# Combine Rg/shape/SegRg/RDF/HB/MSD calculations in one script
+# if at least two of the quantities needs to be calculated
+all_calc  = rg_calc + seg_rgcalc + rdf_calc + hb_calc + msd_calc
 
 # Main code
 for disp_val in range(len(disp_arr)): # loop in polydisperse array
@@ -148,7 +150,22 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             if hb_calc: #HBs
                 create_hbgrps_inp(temp_dir,mon_list,at_list,nchains)
 
-            #--------- Copy and set scripts for running ----------
+            #--------- If all_calculations are to be performed -------
+            if all_calc >= 2: # Do all calculations in single script
+                print("Analyzing multiple structural/MSD calculations")
+                set_mult_jobfile(nchains,sh_dir,temp_dir,'multstruct_pyinp.sh',\
+                                 trajfile,tprfile,conffile,curr_temp,'mult',\
+                                 rg_calc,rdf_calc,hb_calc,seg_rgcalc,msd_calc)
+                if run_all:
+                    os.chdir(temp_dir) # Change to temperature directory
+                    print("Running multiple structural calcualtions ..")
+                    subprocess.call(["sbatch","multstruct.sh"])
+
+                print("Completed T = ", curr_temp)
+                os.chdir(main_dir) #main dir (failsafe)
+                continue # No need to do the rest
+                
+            #--------- For specific calculations: copy scripts ----------
             if rg_calc: #Rg Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rgcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'rg')
@@ -158,11 +175,9 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
             if msd_calc: # MSD Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'msdcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'msd')
-
             if rdf_calc: # Radial Distribution Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'rdfcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'rdf')
-
             if hb_calc: # Hydrogen Bonding Calculation
                 set_jobfile(nchains,sh_dir,temp_dir,'hbcomp_pyinp.sh',\
                             trajfile,tprfile,conffile,curr_temp,'hb')
