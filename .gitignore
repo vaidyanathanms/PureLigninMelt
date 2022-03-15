@@ -17,4 +17,5 @@
 /myruns/src_py/__pycache__
 /myruns/src_py/*.pyc
 /myruns/src_py/*~
+/myruns/src_gmx/sh_files/*~
 /shalini
