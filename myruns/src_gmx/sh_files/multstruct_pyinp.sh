@@ -2,7 +2,7 @@
 
 #SBATCH -A bsd
 #SBATCH -p burst
-#SBATCH -t 0-23:00:00
+#SBATCH -t 0-08:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
@@ -35,7 +35,7 @@ fi
 #**********************Begin Rg/Eigenvalue calculation***************************
 if py_rgflag ; then
     # Inputs
-    rgout="rg_nptmain"; allresultdir="all_results"
+    rgout="rg_nptmain"; allresultdir="all_radgyr"
     eigout="eig_nptmain"
     nchains=py_nchains
 
@@ -190,7 +190,7 @@ fi
 #**********************Begin Segmental Rg calculation***************************
 if py_segrgflag ; then
     # Inputs
-    rgout="traj_npt_main.trr"; allresultdir="all_results"
+    rgout="traj_npt_main.trr"; allresultdir="all_radgyr"
     nchains=py_nchains
 
     # Search for compRg.psf in the superdirectory
@@ -222,13 +222,13 @@ fi
 if py_msdflag ; then
 
     # Inputs
-    msdout="msd_nptmain"; allresultdir="all_results"
+    msdout="msd_nptmain"; msdresultdir="all_msd"
     nchains=py_nchains
 
     # Compute MSD of chains
     printf "Computing MSD of chains"
     
-    mkdir -p ${allresultdir}
+    mkdir -p ${msdresultdir}
     
     for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
     do
@@ -236,9 +236,11 @@ if py_msdflag ; then
     done
     wait
     
-    mv ${msdout}_*.xvg ${allresultdir}
-    cp chainlist.dat ${allresultdir}
-    cp chindx.ndx ${allresultdir}
+    mv ${msdout}_*.xvg ${msdresultdir}
+    cp chainlist.dat ${msdresultdir}
+    cp chindx.ndx ${msdresultdir}
     
     printf "End of MSD calculations.."
 fi
+
+#----------------------End MSD calculation ------------------------------
