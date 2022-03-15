@@ -66,11 +66,9 @@ pdi_arr   = [1.0,1.8,3.0]
 mark_arr  = ['o','d','s']
 nchains   = 20
 #------------------------------------------------------------------
-
 # Global arrays
 denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
 #------------------------------------------------------------------
-
 # Compute densities for all systems
 if den_cal != 0:
     print("Computing densities")
@@ -87,7 +85,6 @@ if den_cal != 0:
             submit_dens(os.getcwd(),wdir,'comp_dens_pyinp.sh',\
                         temp_min,temp_max,temp_dt)
 #------------------------------------------------------------------
-
 # Plot glass transition for all systems
 if tg_cal != 0:
     print("Analyzing Tg data")
