@@ -23,7 +23,7 @@ echo $PWD
 
 
 # Inputs
-rgout="rg_nptmain"; allresultdir="all_results"
+rgout="rg_nptmain"; allresultdir="all_radgyr"
 eigout="eig_nptmain"
 nchains=py_nchains
 

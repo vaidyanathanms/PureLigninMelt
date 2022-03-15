@@ -24,7 +24,7 @@ echo $PWD
 
 
 # Inputs
-rgout="traj_npt_main.trr"; allresultdir="all_results"
+rgout="traj_npt_main.trr"; allresultdir="all_radgyr"
 nchains=py_nchains
 
 # Search for 100 ps interval file. If not present, create it

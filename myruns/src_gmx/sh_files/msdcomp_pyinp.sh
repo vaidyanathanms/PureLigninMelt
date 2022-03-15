@@ -22,7 +22,7 @@ echo $PWD
 
 
 # Inputs
-msdout="msd_nptmain"; allresultdir="all_results"
+msdout="msd_nptmain"; msdresultdir="all_results"
 nchains=py_nchains
 	
 # Make Index files
@@ -49,7 +49,7 @@ fi
 # Compute MSD of chains
 printf "Computing MSD of chains"
 
-mkdir -p ${allresultdir}
+mkdir -p ${msdresultdir}
 
 for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
 do
@@ -57,8 +57,8 @@ do
 done
 wait
 
-mv ${msdout}_*.xvg ${allresultdir}
-cp chainlist.dat ${allresultdir}
-cp chindx.ndx ${allresultdir}
+mv ${msdout}_*.xvg ${msdresultdir}
+cp chainlist.dat ${msdresultdir}
+cp chindx.ndx ${msdresultdir}
 
 printf "End of MSD calculations.."
