@@ -25,9 +25,6 @@ pdi_arr   = [1.0,1.8,3.0]
 mark_arr  = ['o','d','s']
 nchains   = 20
 #------------------------------------------------------------------
-# Global arrays
-denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
-#------------------------------------------------------------------
 # Plot RDF (pol-solvent, pol-water)
 if rdf_pol:
     
