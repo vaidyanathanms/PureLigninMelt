@@ -22,9 +22,9 @@ print("Version: May-11-2021")
 # Input Keys
 rg_calc    = 1 # Calculate rg/shape factor
 seg_rgcalc = 1 # Calculate segmental rg
-rdf_calc   = 1 # Calculate rdf
-tg_calc    = 1 # Calculate densities for Tg
-hb_calc    = 1 # Calculate hydrogen bonding
+rdf_calc   = 0 # Calculate rdf
+tg_calc    = 0 # Calculate densities for Tg
+hb_calc    = 0 # Calculate hydrogen bonding
 msd_calc   = 0 # Calculate msd
 #------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
 disp_arr  = [1.0,1.8]# dispersity values
-run_arr   = [2]  # run number for a given dispersity
+run_arr   = [1,2]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10   # Temperature dt
@@ -156,6 +156,8 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                 set_mult_jobfile(nchains,sh_dir,temp_dir,'multstruct_pyinp.sh',\
                                  trajfile,tprfile,conffile,curr_temp,'mult',\
                                  rg_calc,rdf_calc,hb_calc,seg_rgcalc,msd_calc)
+                if seg_rgcalc:
+                    gencpy(tcl_dir,temp_dir,'calc_seg_rg.tcl')
                 if run_all:
                     os.chdir(temp_dir) # Change to temperature directory
                     print("Running multiple structural calcualtions ..")
@@ -189,8 +191,8 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                     print("Running Rg calculation")
                     subprocess.call(["sbatch","rgcomp.sh"])
                 if seg_rgcalc:
-                    print("Running segmental Rg calculation")
                     gencpy(tcl_dir,temp_dir,'calc_seg_rg.tcl')
+                    print("Running segmental Rg calculation")
                     subprocess.call(["sbatch","segment_rgcomp.sh"])
                 if msd_calc:
                     print("Running MSD calculation")
