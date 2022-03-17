@@ -70,7 +70,7 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
     anadir = workdir1 + '/T_' + str(subdir)
     if not os.path.isdir(workdir1):
         return -1, -1, -1
-#        raise RuntimeError(anadir, " does not exist!")
+        raise RuntimeError(anadir, " does not exist!")
 
     return workdir1, anadir, fig_dir
 #------------------------------------------------------------------
