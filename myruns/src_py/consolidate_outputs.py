@@ -9,7 +9,19 @@ import subprocess
 import sys
 import glob
 from subprocess import call
-from plt_aux import *
+#---------------Extra function defninitions-----------------------
+# General copy script
+def gencpy(dum_maindir,dum_destdir,fylname):
+
+    srcfyl = dum_maindir + '/' + fylname
+
+    if not os.path.exists(srcfyl):
+        print('ERROR: ', srcfyl, 'not found')
+        return
+
+    desfyl = dum_destdir + '/' + fylname
+    shutil.copy2(srcfyl,desfyl)
+#------------------------------------------------------------------
 
 #---------input flags------------------------------------------
 rest_job_flag  = 1 #copy restart/job files
@@ -18,10 +30,10 @@ fyl_flag       = 1 #copy output files
 #---------input details----------------------------------------
 inp_type  = 'melts' # melts, solvents, cosolvents
 biom_arr  = ['WT']  # name of the biomass type
-pdi_arr   = [3.0,3.7,'expts'] # dispersity values
-run_arr   = [1,2,3,4]         # run number for a given dispersity
+pdi_arr   = [1.0,1.8]#,3.7,'expts'] # dispersity values
+run_arr   = [1]#,2,3,4]         # run number for a given dispersity
 temp_min  = 250     # Minimum temperature
-temp_max  = 501     # Maximum temperature (< max; add +1 to desired)
+temp_max  = 271     # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10      # Temperature dt
 
 #--------file_lists--------------------------------------------
@@ -66,13 +78,12 @@ for bio_indx in range(len(biom_arr)): # loop in biomass
         for casenum in range(len(run_arr)): # loop in runarr
             
             if pdi_val == 'expts':
-                poly_dir = headdir + '/expts' + '/run_'\
-                           + str(run_arr[casenum])
+                rundir = headdir + '/expts' + '/run_' + str(run_arr[casenum])
             else:
-                poly_dir = headdir + '/pdi_' + str(pdi_val)\
-                           + '/run_' + str(run_arr[casenum])
-            if not os.path.isdir(poly_dir):
-                print(poly_dir + " does not exist!")
+                rundir = headdir + '/pdi_' + str(pdi_val)+ '/run_'\
+                         + str(run_arr[casenum])
+            if not os.path.isdir(rundir):
+                print(rundir + " does not exist!")
                 continue
             #--------------Make global analysis files output directory-----
             if fyl_flag == 1:
@@ -90,16 +101,9 @@ for bio_indx in range(len(biom_arr)): # loop in biomass
                     os.mkdir(rest_casedir)
 
             for tval in range(temp_min,temp_max,temp_dt): # loop in temp
+                
+                tdir = rundir + '/T_' + str(tval)
 
-                wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
-                                                 pdi_val,run_arr[casenum],\
-                                                 tval,'None')
-
-                if wdir == -1:
-                    print("Temperature directory does not exist: ", tval)
-                    continue
-                os.chdir(wdir)
-                destdir = os.getcwd()
                 print('Copying: ',biomass,inp_type,'run_'+str(run_arr[casenum]),\
                       'T_'+str(tval))
 
