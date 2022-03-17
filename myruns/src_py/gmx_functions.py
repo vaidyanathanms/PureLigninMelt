@@ -1,5 +1,5 @@
-# Generate GROMACS inputs for analysis
-# Ver: May-11-2021
+# Analyze static structural properties and MSD using GMX modules
+# Ver2.0: Mar-17-2022
 #------------------------------------------------------------------
 
 # Import modules
@@ -30,10 +30,10 @@ msd_calc   = 0 # Calculate msd
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
-expts     = 0 # 1-expt data, 0 - sztheory
+expts     = 1 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0,1.8]# dispersity values
+disp_arr  = [3.7]# dispersity values
 run_arr   = [1,2]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
