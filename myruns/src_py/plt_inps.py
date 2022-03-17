@@ -1,10 +1,9 @@
 # All path and color inputs for analyzing/plotting data
 # Directory paths
 main_dir = os.getcwd() # current dir
-scr_dir  = '/lustre/or-scratch/cades-bsd/v0e' # scratch dir
-scr_dir  = scr_dir + '/Glassy_lignin'
+ana_dir  = '../../../all_results' # analysis dir
 sh_dir   = '../src_gmx/sh_files'
-if not os.path.isdir(scr_dir):
+if not os.path.isdir(ana_dir):
     print("FATAL ERROR: ", scr_dir, " not found")
     exit("Check scratch directory path")
 #------------------------------------------------------------------
