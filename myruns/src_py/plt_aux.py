@@ -45,7 +45,10 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
         if not os.path.isdir(fig_dir):
             os.mkdir(fig_dir)
 
-        poly_dir = poly_dir + '/pdi_' + str(dispval)
+        if dispval == 'expts':
+            poly_dir = poly_dir + '/expts'
+        else:
+            poly_dir = poly_dir + '/pdi_' + str(dispval)
         if not os.path.isdir(poly_dir):
             raise RuntimeError(poly_dir + " does not exist!")
 
@@ -66,7 +69,8 @@ def ret_temp_dir(scr_dir,inp_type,biomass,dispval,casenum,subdir,\
 
     anadir = workdir1 + '/T_' + str(subdir)
     if not os.path.isdir(workdir1):
-        raise RuntimeError(anadir, " does not exist!")
+        return -1, -1, -1
+#        raise RuntimeError(anadir, " does not exist!")
 
     return workdir1, anadir, fig_dir
 #------------------------------------------------------------------
