@@ -9,20 +9,7 @@ import subprocess
 import sys
 import glob
 from subprocess import call
-#---------------Extra function defninitions-----------------------
-# General copy script
-def gencpy(dum_maindir,dum_destdir,fylname):
-
-    srcfyl = dum_maindir + '/' + fylname
-
-    if not os.path.exists(srcfyl):
-        print('ERROR: ', srcfyl, 'not found')
-        return
-
-    desfyl = dum_destdir + '/' + fylname
-    shutil.copy2(srcfyl,desfyl)
-#------------------------------------------------------------------
-
+from general_functions import *
 #---------input flags------------------------------------------
 rest_job_flag  = 1 #copy restart/job files
 fyl_flag       = 1 #copy output files
