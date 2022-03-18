@@ -1,11 +1,21 @@
 # All path and color inputs for analyzing/plotting data
+
+#Import Modules
+import os
+import matplotlib.pyplot as plt
+
 # Directory paths
 main_dir = os.getcwd() # current dir
-ana_dir  = '../../../all_results' # analysis dir
-sh_dir   = '../src_gmx/sh_files'
-if not os.path.isdir(ana_dir):
-    print("FATAL ERROR: ", scr_dir, " not found")
+all_dir  = '../../../sim_results' # analysis dir
+if not os.path.isdir(all_dir):
+    print("FATAL ERROR: ", all_dir, " not found")
     exit("Check scratch directory path")
+anaout_dir = '../../../analyzed_results'
+if not os.path.isdir(anaout_dir):
+    os.mkdir(anaout_dir)
+figout_dir = '../../../figures'
+if not os.path.isdir(figout_dir):
+    os.mkdir(figout_dir)  
 #------------------------------------------------------------------
 
 # Color/line data; figure defaults
