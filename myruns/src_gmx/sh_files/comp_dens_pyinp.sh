@@ -18,11 +18,10 @@ module load vmd
 export OMP_NUM_THREADS=32;
 
 headdir=${PWD}
-enerfile_1="ener_npt_berendsen.edr"; tprfile_1="npt_berendsen.tpr"
-enerfile_2="ener_npt_main.edr"; tprfile_2="npt_main.tpr"
-densfile_1="dens_berendsen.xvg"; densfile_2="dens_npt.xvg"
+enerfile_1="ener_npt_main.edr"; tprfile_1="npt_main.tpr"
+densfile_1="dens_npt.xvg"
 
-allresultdir="all_results"	
+allresultdir="all_dens"	
 for temp_i in {py_Tinit..py_Tfin..py_dT}
     do
 	tempdir="./T_${temp_i}"
@@ -34,16 +33,10 @@ for temp_i in {py_Tinit..py_Tfin..py_dT}
 	    cd ${tempdir}
 	fi
 
-	if ! test -f "$enerfile_1"  || ! test -f "$tprfile_1" ; then
+	if ! test -f "$enerfile_1" || ! test -f "$tprfile_1" ; then
 	    echo "$enerfile_1 or $tprfile_1 not found"
 	else
 	    printf "22\n0" | srun gmx energy -f $enerfile_1 -s $tprfile_1 -o $densfile_1 &
-	fi
-
-	if ! test -f "$enerfile_2" || ! test -f "$tprfile_2" ; then
-	    echo "$enerfile_1 or $tprfile_1 not found"
-	else
-	    printf "22\n0" | srun gmx energy -f $enerfile_2 -s $tprfile_2 -o $densfile_2 &
 	fi
 	wait
 
