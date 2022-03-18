@@ -25,7 +25,7 @@ temp_dt   = 10      # Temperature dt
 
 #--------file_lists--------------------------------------------
 #Give prefix for files to be copied with *
-dir_list     = ['all_hbs','all_radgyr','all_results','all_rdfs']
+dir_list     = ['all_hbs','all_radgyr','all_dens','all_rdfs']
 fyl_list     = ['*.xvg','*.inp','*.dat','*.ndx']
 restart_list = ['*.cpt','*.log','*.gro']
 
