@@ -17,10 +17,10 @@ fyl_flag       = 1 #copy output files
 #---------input details----------------------------------------
 inp_type  = 'melts' # melts, solvents, cosolvents
 biom_arr  = ['WT']  # name of the biomass type
-pdi_arr   = [1.0,1.8]#,3.7,'expts'] # dispersity values
-run_arr   = [1]#,2,3,4]         # run number for a given dispersity
+pdi_arr   = [1.0,1.8,3.0,3.7,'expts'] # dispersity values
+run_arr   = [1,2,3,4]         # run number for a given dispersity
 temp_min  = 250     # Minimum temperature
-temp_max  = 271     # Maximum temperature (< max; add +1 to desired)
+temp_max  = 501     # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10      # Temperature dt
 
 #--------file_lists--------------------------------------------
