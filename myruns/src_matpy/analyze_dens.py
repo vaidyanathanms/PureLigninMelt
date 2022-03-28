@@ -15,14 +15,15 @@ from plt_inps import *
 #------------------------------------------------------------------
 
 # Input data for analysis
-run_arr   = [1,2] # run numbers for a given biomass
+run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
-anadir_head = 'all_results' # change this for different analysis
+anadir_head = 'all_dens' # change this for different analysis
+start_frac  = 0.3 # starting point for averaging
 #------------------------------------------------------------------
 
 # Global arrays
@@ -41,31 +42,42 @@ for pdi_val in pdi_arr:
     simout_dir = all_dir + '/results_pdi_' + str(pdi_val)
     if not os.path.isdir(simout_dir):
         print("ERR: " +  simout_dir + " does not exist")       
+        continue
     
     # Define axes labels for distribution
     fig1,ax1 = plt.subplots()
     set_axes(ax1,plt,r'Time (ps)',r'Density ($kg$/$m^3$)')
+
+    # All outputs together
+    fall_out = open(anaout_dir +'/alltgdata_'+str(pdi_val)+'.dat','w')
+    fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','Dens_R1','Dens_R2',\
+                                                'Dens_R3','Dens_R4','TotCase'))
     
+    # Set arrays
     yrho_avg = [] # Average density
     ncasetot = [] # Total cases per temperature
 
+    # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
         yall = []
         yavg = 0; ncases_pertemp = 0
-
+        fall_out.write('%g\t' %(tval))
+        
         for casenum in range(len(run_arr)): # loop in runarr
             
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
                 '/T_' + str(tval) + '/' + anadir_head
             if not os.path.isdir(wdir):
+                fall_out.write('%s\t' %('N/A'))
                 print("ERR: " + wdir + " does not exist")
                 continue
             
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
-            if os.path.exists(wdir + '/dens_npt.xvg'):
-                fname  = wdir + '/dens_npt.xvg'
+            if os.path.exists(wdir + '/dens_npt.xvg'): #check file exists
+                fname  = wdir + '/dens_npt.xvg' 
             else:
+                fall_out.write('%s\t' %('N/A'))
                 print(fname, " does not exist! ")
                 print("ERR: Compute densities before Tg calculation..")
                 continue
@@ -77,25 +89,32 @@ for pdi_val in pdi_arr:
                          not line.lstrip().startswith('@'))
                 data  = np.loadtxt(lines)
 
-            yall = np.append(yall,data[:,1]) #append all y-data
-            startpt = int(0.1*len(yall))
-            yavg += np.average(data[startpt:len(yall)-1,1])
+            yall = np.append(yall,data[:,1]) #append new y-data
+            startpt = int(start_frac*len(yall))
+            rho_case = np.average(data[startpt:len(yall)-1,1])
+            yavg += rho_case
             ncases_pertemp += 1
-            
+            fall_out.write('%g\t' %(rho_case)) # Write to file
+             
             # plot time-density variations
             if casenum == 0 and tval in denarr: #end of casenum loop
                 ax1.plot(data[:,0],data[:,1],label=temp_leg)
             
         # Do NOT continue if zero cases are found
         if ncases_pertemp == 0:
+            fall_out.write('%g\n' %(ncases_pertemp))
             continue
+        
         # append avg/totcases to yrho_avg
         yrho_avg = np.append(yrho_avg,yavg/ncases_pertemp) 
-        ncasetot = np.append(ncasetot,ncases_pertemp) #end of tval loop
-
+        ncasetot = np.append(ncasetot,ncases_pertemp) 
+        fall_out.write('%g\n' %(ncases_pertemp)) #end of tval loop
+        
     # Do NOT continue if no PDI-temps are found
     if len(yrho_avg) == 0: #to account for boolean values
         continue
+
+    fall_out.close() #Close temp file
     
     # Save density-time plots
     ax1.legend(loc=0)
@@ -125,7 +144,7 @@ for pdi_val in pdi_arr:
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.eps',format='eps')
     plt.close(figa) # End of PDI loop
     
-#------- Plot SV-Temp data for all PDI values ------------------------
+#------- Plot SV-Temp data for all PDI values together-----------------
 fig2, ax2 = plt.subplots()
 set_axes(ax2,plt,r'Temperature ($K$)',r'Specific Volume ($cm^{3}/g$)')
 

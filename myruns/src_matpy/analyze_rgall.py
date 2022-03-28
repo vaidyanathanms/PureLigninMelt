@@ -1,5 +1,5 @@
-# Analyze and plot Rg/Segmental Rg/Shape factor
-# Version: Mar-16-2021
+# Analyze and plot Rg
+# Version: Mar-27-2022
 #------------------------------------------------------------------
 
 # Import modules
@@ -8,71 +8,113 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import os
-import sys
-import re
-import shutil
-import glob
 import math
-import subprocess
 from plt_aux import *
 from compute_props import *
+from plt_inps import *
 #------------------------------------------------------------------
+
 # Input data for analysis
-pdi_val   = 1.8
-run_arr   = [1] # run numbers for a given biomass
+run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
-pdi_arr   = [1.0,1.8,3.0]
+pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
+anadir_head = 'all_rg' # change this for different analysis
+start_frac  = 0.3 # starting point for averaging
 #------------------------------------------------------------------
-# Plot avg rg and rg distribution
+
+# Global arrays
+denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
+#------------------------------------------------------------------
+
+# Generate output directories
+anaout_dir = anaout_dir + '/rg_results' # result_outputs
+if not os.path.isdir(anaout_dir):
+    os.mkdir(anaout_dir)
+#------------------------------------------------------------------
+
+#----------------Begin Analyzing Rg2/Rg4 data -----------------------------
 print("Analyzing Rg data ...")
+for pdi_val in pdi_arr:
 
-for bio_indx in range(len(biom_arr)): # loop in biomass
+    # Set/Check directories
+    simout_dir = all_dir + '/results_pdi_' + str(pdi_val)
+    if not os.path.isdir(simout_dir):
+        print("ERR: " +  simout_dir + " does not exist")       
+        continue
+    
+    # Output for each case
+    fall_out = open(anaout_dir +'/allRg2data_'+str(pdi_val)+'.dat','w')
+    fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','Rg2_R1','Rg2_R2',\
+                                                'Rg2_R3','Rg2_R4','TotCase'))
 
-    biomass = biom_arr[bio_indx]
-    res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-              '/pdi_' + str(pdi_val) + '/results'
-    if not os.path.isdir(res_dir):
-        os.mkdir(res_dir)
-        
-    # Write data and then read to concatenate
-    rg_fyl = res_dir + '/Rgdata.dat'
-    fall_rg = open(rg_fyl,'w')
-    fall_rg.write('%s\t%s\t%s\t%s\n'\
-                  %('Temperature','<Rg^2>','<Rg^4>','Rg4/Rg2^2'))
+    fall_out2 = open(anaout_dir +'/allRg4data_'+str(pdi_val)+'.dat','w')
+    fall_out2.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','Rg4_R1','Rg4_R2',\
+                                                 'Rg4_R3','Rg4_R4','TotCase'))
 
-    # Define axes labels for plotting Rg distribution
+
+    fall_out3 = open(anaout_dir +'/allalpha_'+str(pdi_val)+'.dat','w')
+    fall_out3.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','Al_R1','Al_R2',\
+                                                 'Al_R3','Al_R4','TotCase'))
+
+    # Averaged outputs
+    fc_rg = open(anaout_dir +'/Rgdata_'+str(pdi_val)+'.dat','w')
+    fc_rg.write('%s\t%s\t%s\t%s\t%s\n' \
+                %('Temp','<Rg^2>','<Rg^4>','Rg4/rg2^2','Ncases'))
+
+    # Define axes labels for distribution
     fig1,ax1 = plt.subplots()
     set_axes(ax1,plt,r'$R_{g}$ (nm)','Probability')
-    
+
+    # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
-        rgall = np.zeros(0)
-        chain_rg2 = 0; chain_rg4 = 0
-
+        rgall = []
+        chain_rg2 = 0; chain_rg4 = 0; ncases_pertemp = 0
+        fall_out.write('%g\t' %(tval)); fall2_out.write('%g\t' %(tval))
+        fall3_out.write('%g\t' %(tval))
+        
         for casenum in range(len(run_arr)): # loop in runarr
-            wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
-                                             pdi_val,run_arr[casenum],\
-                                             tval,solv_type)
+            wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
+                '/T_' + str(tval) + '/' + anadir_head
+            if not os.path.isdir(wdir):
+                fall_out.write('%s\t' %('N/A')); fall2_out.write('%g\t' %('N/A'))
+                fall3_out.write('%g\t' %('N/A'))
+                print("ERR: " + wdir + " does not exist")
+                continue
+
             
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
-            # Check file
-            list_of_files = glob.glob(tdir + '/all_results/rg_nptmain_*.xvg')
+            
+            # Check file(s)
+            list_of_files = glob.glob(tdir + '/rg_nptmain_*.xvg')
             if list_of_files == []:
+                fall_out.write('%s\t' %('N/A')); fall2_out.write('%g\t' %('N/A'))
+                fall3_out.write('%g\t' %('N/A'))
                 print("Rg files do not exist for ", tval)
                 continue
 
             if len(list_of_files) != nchains:
+                fall_out.write('%s\t' %('DiffNchains'))
+                fall2_out.write('%s\t' %('DiffNchains'))
+                fall3_out.write('%s\t' %('DiffNchains'))
                 print('ERR: Mismatch in number of analysis file and input',\
                           nchains, len(list_of_files))
                 print(list_of_files)
                 continue
-                
-            mon_arr = ret_mons(tdir + '/all_results/chainlist.dat')
-            rg_case = res_dir + '/Rg_casenum_' + str(casenum)+ \
+
+            if not os.path.exists(wdir + '/chainlist.dat'):
+                fall_out.write('%s\t' %('Nochainlist'))
+                fall2_out.write('%s\t' %('Nochainlist'))
+                fall3_out.write('%s\t' %('Nochainlist'))
+                print('ERR: chainlist.dat not found')
+                continue
+            
+            mon_arr = ret_mons(wdir + '/chainlist.dat')
+            rg_case = anaout_dir + '/Rg_casenum_' + str(casenum)+ \
                       '_T_' + str(tval) + '.dat'
             fcase_rg = open(rg_case,'w')
             fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
@@ -86,146 +128,91 @@ for bio_indx in range(len(biom_arr)): # loop in biomass
                     lines = (line.lstrip() for line in fin \
                              if not line.lstrip().startswith('#') and \
                              not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines)
-                    l1 = int(0.1*len(data[:1]))
-                    l2 = len(data[:,1])
-                    rg2 = np.average(np.square(data[l1:l2,1]))
-                    rg4 = np.average(np.power(data[l1:l2,1],4))
-                    al =  rg4/(rg2*rg2)
-                    fcase_rg.write('%g\t%g\t%g\t%g\t%g\n' %(chid,int(mon_arr[chid]),rg2,rg4,al))
+                    data  = np.loadtxt(lines) #end with open(fyle)
+                    
+                l1 = int(start_frac*len(data[:1]))
+                l2 = len(data[:,1])
+                rg2 = np.average(np.square(data[l1:l2,1]))
+                rg4 = np.average(np.power(data[l1:l2,1],4))
+                fcase_rg.write('%g\t%g\t%g\t%g\t%g\n'\
+                               %(chid,int(mon_arr[chid]),rg2,rg4,al))
+                 
+                case_rg2 += rg2
+                case_rg4 += rg4
 
-                    case_rg2 += rg2
-                    case_rg4 += rg4
-                    rgall = np.append(rgall,data[l1:l2,1]) #append all rg-data
-                        
+                #append new rg-data
+                rgall = np.append(rgall,data[l1:l2,1]) #end for fyle in list_of_files
+
+            fcase_rg.close() # close writing for each case 
             chain_rg2 += case_rg2/nchains
             chain_rg4 += case_rg4/nchains
+            alpha     += (case_rg4)/(case_rg2*case_rg2)
+            ncases_pertemp += 1 
 
-        chain_rg2 /= len(run_arr)
-        chain_rg4 /= len(run_arr)
-        alpha = (chain_rg4)/(chain_rg2*chain_rg2)
-        fall_rg.write('%g\t%g\t%g\t%g\n' %(tval,chain_rg2,\
-                                           chain_rg4,alpha))
-
-        # plot histogram across all cases
-        sns.kdeplot(data=np.array(rgall),label=temp_leg,ax=ax1)
-
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_pdi_'+str(pdi_val)+\
-                     '_Rgdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-
-    fall_rg.close()
-    # plot rg_data
-    df=pd.read_table(rg_fyl)
-    plot_allrg(df,fig_dir,pdi_val)
-#------------------------------------------------------------------
-# Plot shape factor and shape factor distribution
-print("Analyzing Shape factor data")
-
-for bio_indx in range(len(biom_arr)): # loop in biomass
-
-    biomass = biom_arr[bio_indx]
-    res_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-              '/pdi_' + str(pdi_val) + '/results'
-    if not os.path.isdir(res_dir):
-        os.mkdir(res_dir)
-            
-    # Write data and then read to concatenate
-    sf_fyl = res_dir + '/shapefacdata.dat'
-    fall_sf = open(sf_fyl,'w')
-    fall_sf.write('%s\t%s\t%s\t%s\t%s\n'\
-                  %('Temperature','<lam_1>','<lam_2>','<lam_3>','\kappa'))
-
-    # Define axes labels for plotting Rg distribution
-    fig1,ax1 = plt.subplots()
-    set_axes(ax1,plt,r'$\kappa$','Probability')
-
-    for tval in range(temp_min,temp_max,temp_dt): # loop in temp
-        temp_leg  = str(tval)
-        sf_all = np.zeros(0)
-        chain_lam1 = 0; chain_lam2 = 0; chain_lam3 = 0; chain_kapa = 0
+            # Write average rg2/rg4/alpha for each case
+            fall_out.write('%g\t' %(case_rg2/nchains))
+            fall_out2.write('%g\t' %(case_rg4/nchains)) 
+            fall_out2.write('%g\t' %(case_rg4)/(case_rg2*case_rg2))
+            # end for casenum in len(range(run_arr))
         
-        for casenum in range(len(run_arr)): # loop in runarr
-            wdir,tdir,fig_dir = ret_temp_dir(scr_dir,inp_type,biomass,\
-                                             pdi_val,run_arr[casenum],\
-                                             tval,solv_type)
+        # Do NOT continue if zero cases are found
+        if ncases_pertemp == 0:
+            fall_out.write('%g\n' %(ncases_pertemp))
+            continue
 
-            print("Analyzing: ", pdi_val,tval,run_arr[casenum])
-            # Check file
-            list_of_files = glob.glob(tdir + '/all_results/eig_nptmain_*.xvg')
-            if list_of_files == []:
-                print("Eigenvalue files do not exist for ", tval)
-                continue
-            
-            if len(list_of_files) != nchains:
-                print('ERR: Mismatch in number of analysis file and input',\
-                      nchains, len(list_of_files))
-                print(list_of_files)
-                continue
-                
-            mon_arr = ret_mons(tdir + '/all_results/chainlist.dat')
-            sf_case = res_dir + '/sf_casenum_' + str(casenum)+ \
-                      '_T_' + str(tval) + '.dat'
-            fcase_sf = open(sf_case,'w')
-            fcase_sf.write('%s\t%s\t%s\t%s\t%s\t%s\n' \
-                           %('ChainID','Nmons','<lam_1>','<lam_2>',\
-                             '<lam_3>','\kappa'))
-            
-            case_lam1 = 0; case_lam2 = 0; case_lam3 = 0; case_kapa = 0
-            for fyle in list_of_files:
-                chid = ret_chid(fyle)
-                # Open and parse file
-                with open(fyle) as fin:
-                    lines = (line.lstrip() for line in fin \
-                             if not line.lstrip().startswith('#') and \
-                             not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines)
-                    l1 = int(0.1*len(data[:1]))
-                    l2 = len(data[:,1])
-                    lam1 = np.average(data[l1:l2,2])
-                    lam2 = np.average(data[l1:l2,3])
-                    lam2 = np.average(data[l1:l2,4])
-                    tr = (lam1+lam2+lam3)/3
-                    kappa = 1.5*((lam1-tr)**2 + (lam2-tr)**2 + (lam3-tr)**2)
-                    kappa /= (lam1+lam2+lam3)**2
-                    fcase_sf.write('%g\t%g\t%g\t%g\t%g\t%g\n' \
-                                   %(chid,int(mon_arr[chid]),lam1,lam2,\
-                                     lam3,kappa))
-                    tr_all = (data[l1:l2,2]+data[l1:l2,3]+data[l1:l2,4])/3
-                    sf_all = 1.5*((data[l1:l2,2]-tr_all)**2 + \
-                                  (data[l1:l2,3]-tr_all)**2 + \
-                                  (data[l2:l2,4]-tr_all)**2))
-                    
-                    case_lam1 += lam1
-                    case_lam2 += lam2
-                    case_lam3 += lam3
-                    case_kapa += kappa
-                    
-            chain_lam1 += case_lam1/nchains
-            chain_lam2 += case_lam2/nchains
-            chain_lam3 += case_lam3/nchains
-            chain_kapa += case_kappa/nchains
+        # Write averages over different cases for each temp
+        chain_rg2 /= len(ncases_pertemp)
+        chain_rg4 /= len(ncases_pertemp)
+        alpha     /= len(ncases_pertemp)
+        fc_rg.write('%g\t%g\t%g\t%g\t%d\n' %(tval,chain_rg2,\
+                                             chain_rg4,alpha,ncases_pertemp))
+        fall_out.write('%g\n' %(ncases_pertemp)) 
 
-        chain_lam1 /= len(run_arr)
-        chain_lam2 /= len(run_arr)
-        chain_lam3 /= len(run_arr)
-        chain_kapa /= len(run_arr)
-        
-        fall_sf.write('%g\t%g\t%g\t%g\t%g\n'\
-                      %(tval,chain_lam1,chain_lam2,\
-                        chain_lam3,chain_kapa))
-        
-        # plot histogram across all cases
-        sns.kdeplot(data=np.array(sf_all),label=temp_leg,ax=ax1)
-        
-        # Save histogram plot
-        ax1.legend(loc=0)
-        fig1.savefig(fig_dir + '/'+biomass+'_pdi_'+str(pdi_val)+\
-                     '_sfdist.png',dpi=fig1.dpi)
-        plt.close(fig1)
-#------------------------------------------------------------------
+        # plot Rg-distribution if tval in denarr
+        if tval in denarr: # end of tval loop
+            sns.kdeplot(data=np.array(rgall),label=temp_leg,ax=ax1)
+            ax1.legend(loc=0) 
+   
+    # Close temp files
+    fc_rg.close();fall_out.close(); fall_out2.close(); fall_out3.close()
+
+    # Do NOT continue if no PDI-temps are found
+    if len(rgall) == 0: #to account for boolean values
+        continue
+
+    # Save distribution for select temperatures
+    fig1.savefig(figout_dir+'/'+'Rgdist_'+str(pdi_val)+'.png',dpi=fig1.dpi)
+    fig1.savefig(figout_dir+'/'+'Rgdist_'+str(pdi_val)+'.eps',format='eps')
+    plt.close(fig1)
+
+    # Plot Rg-temperature data for each PDI
+    df=pd.read_table(anaout_dir +'/Rgdata_'+str(pdi_val)+'.dat')
+    plot_allrg(df,figout_dir,pdi_val) #end of PDI loop
+    
+#------- Plot Rg2-Temp data for all PDI values together--------------------
+fig2, ax2 = plt.subplots()
+set_axes(ax2,plt,r'Temperature ($K$)',r'\langle R_{g}^{2} \rangle ($nm^{2}$)')
+
+for pdi_val in pdi_arr:
+    if pdi_val == 'expts':
+        pdileg = 'PDI: Experimental Distribution'
+    else:
+        pdileg = 'PDI: ' + str(pdi_val)
+    fname = '/Rgdata_'+str(pdi_val)+'.dat'
+    if not os.path.exists(anaout_dir + '/' + fname):
+        print('ERR: '+fname+' does not exist in ' + anaout_dir)
+        continue
+    
+    df=pd.read_table(anaout_dir + '/' + fname)
+    print('Plotting', pdi_val)
+    ax2.scatter(x=df['Temp'],y=df['<Rg2>'],label=pdileg)
+    
+fig2.savefig(figout_dir + '/'+'rg2_allpdi.png',dpi=fig2.dpi)
+fig2.savefig(figout_dir + '/'+'rg2_allpdi.eps',format='eps')
+plt.close(fig2)
+#----------------------End of Rg2 Analysis------------------------------
+
+    
 # Compute Rgscaling
 print("Analyzing Segmental Rg data")
 for bio_indx in range(len(biom_arr)): # loop in biomass
