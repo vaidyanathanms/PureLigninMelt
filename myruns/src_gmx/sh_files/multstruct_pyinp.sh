@@ -2,7 +2,7 @@
 
 #SBATCH -A bsd
 #SBATCH -p burst
-#SBATCH -t 0-08:00:00
+#SBATCH -t 0-10:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
