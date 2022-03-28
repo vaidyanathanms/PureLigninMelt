@@ -1,4 +1,4 @@
-# Analyze and plot Rg
+# Analyze and plot scalings for Rg
 # Version: Mar-27-2022
 #------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ from plt_inps import *
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
-temp_max  = 501 # Maximum temperature
+temp_max  = 301 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
@@ -31,7 +31,7 @@ denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
 #------------------------------------------------------------------
 
 # Generate output directories
-anaout_dir = anaout_dir + '/rg_results' # result_outputs
+anaout_dir = anaout_dir + '/segrg_results' # result_outputs
 if not os.path.isdir(anaout_dir):
     os.mkdir(anaout_dir)
 #------------------------------------------------------------------
@@ -61,10 +61,12 @@ for pdi_val in pdi_arr:
     fall_fit = open(anaout_dir +'/Rgscaling_'+str(pdi_val)+'.dat','w')
     fall_fit.write('%s\t%s\t%s\t%s\n' %('Temp','b','nu','NCases'))
 
+    pdiflag = -1                # to account for empty directories
+    
     # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
-        nu_avg = 0; b_avg = 0; ncases_pertemp = 0
+        nu_avg = 0; b_avg = 0; ncases_pertemp = 0; pdiflag = 1
         fall_out.write('%g\t' %(tval)); fall2_out.write('%g\t' %(tval))
         
         for casenum in range(len(run_arr)): # loop in runarr
@@ -78,7 +80,7 @@ for pdi_val in pdi_arr:
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
 
             # Check file(s)
-            list_of_files = wdir + '/RgvsN.dat'
+            outfile = wdir + '/RgvsN.dat'
             if not os.path.exists(outfile):
                 fall_out.write('%s\t' %('N/A')); fall2_out.write('%s\t' %('N/A'))
                 print("RgvsN.dat not found for ", tval)
@@ -105,10 +107,10 @@ for pdi_val in pdi_arr:
         # end of tval loop
 
     # Close temp files
-    fall_fit.close(); fall_out.close(); fall_out2.close()
+    fall_fit.close(); fall_out.close(); fall2_out.close()
     
     # Do NOT continue if no PDI-temps are found
-    if len(rgall) == 0: #to account for boolean values
+    if pdiflag == -1: 
         continue
         
 
@@ -117,7 +119,7 @@ for pdi_val in pdi_arr:
     plot_rgscaling(df,figout_dir,pdi_val) #end of PDI loop
 
 #------- Plot b/nu-Temp data for all PDI values together--------------------
-
+print("Plotting all Scaling Coefficients as a function of PDI..")
 fig2, ax2 = plt.subplots()
 set_axes(ax2,plt,r'Temperature ($K$)',r'$\nu$') 
 
@@ -136,10 +138,9 @@ for pdi_val in pdi_arr:
     
     df=pd.read_table(anaout_dir + '/' + fname)
     print('Plotting', pdi_val)
-    ax2.scatter(x=df['T'],y=df['nu'],marker=mrk_arr[pdiindx],\
-                color=clr_arr[pdiindx])
-    ax3.scatter(x=df['T'],y=df['b'],marker=mrk_arr[pdiindx],\
-                color=clr_arr[pdiindx])
+    pdiindx += 1
+    ax2.scatter(x=df['Temp'],y=df['nu'],label = pdileg)
+    ax3.scatter(x=df['Temp'],y=df['b'],label = pdileg)
     
 fig2.savefig(figout_dir + '/'+'nu_allpdi.png',dpi=fig2.dpi)
 fig2.savefig(figout_dir + '/'+'nu_allpdi.eps',format='eps')

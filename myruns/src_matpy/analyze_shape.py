@@ -31,7 +31,7 @@ denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
 #------------------------------------------------------------------
 
 # Generate output directories
-anaout_dir = anaout_dir + '/rg_results' # result_outputs
+anaout_dir = anaout_dir + '/shape_results' # result_outputs
 if not os.path.isdir(anaout_dir):
     os.mkdir(anaout_dir)
 #------------------------------------------------------------------
@@ -64,10 +64,12 @@ for pdi_val in pdi_arr:
     fig1,ax1 = plt.subplots()
     set_axes(ax1,plt,r'$\kappa$','Probability')
 
+    pdiflag = -1                # to account for empty directories
+    
     # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
-        sf_all = []
+        sf_all = []; pdiflag = 1
         avgd_lam1 = 0; avgd_lam2 = 0; avgd_lam3 = 0; avgd_kappa = 0
         ncases_pertemp = 0
         fall_out.write('%g\t' %(tval))
@@ -103,9 +105,8 @@ for pdi_val in pdi_arr:
                 continue
 
             mon_arr = ret_mons(wdir + '/chainlist.dat')
-            sf_case = anaout_dir + '/shape_casenum_' + str(run_arr[casenum])+ \
-                      '_T_' + str(tval) + '.dat'
-            fcase_sf = open(sf_case,'w')
+            fcase_sf = open(anaout_dir + '/shape_casenum_' + str(run_arr[casenum])+ \
+                            '_T_' + str(tval) + '.dat','w')
             fcase_sf.write('%s\t%s\t%s\t%s\t%s\t%s\n' \
                            %('ChainID','Nmons','<lam_1>','<lam_2>',\
                              '<lam_3>','\kappa'))
@@ -177,7 +178,7 @@ for pdi_val in pdi_arr:
     fall_out.close(); fall_sf.close()
     
     # Do NOT continue if no PDI-temps are found
-    if len(sf_all) == 0: #to account for boolean values
+    if pdiflag == -1:
         continue
 
     # Save distribution for select temperatures
@@ -186,7 +187,7 @@ for pdi_val in pdi_arr:
     fig1.savefig(figout_dir+'/'+'kapdist_'+str(pdi_val)+'.eps',format='eps')
     plt.close(fig1)
 
-    # Plot Rg-temperature data for each PDI
+    # Plot Shape-temperature data for each PDI
     df=pd.read_table(sf_fyl)
     plot_allshape(df,figout_dir,pdi_val) #end of PDI loop
 

@@ -69,10 +69,12 @@ for pdi_val in pdi_arr:
     fig1,ax1 = plt.subplots()
     set_axes(ax1,plt,r'$R_{g}$ (nm)','Probability')
 
+    pdiflag = -1                # to account for empty directories
+    
     # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
-        rgall = []
+        rgall = []; pdiflag = 1
         chain_rg2 = 0; chain_rg4 = 0; ncases_pertemp = 0; alpha = 0
         fall_out.write('%g\t' %(tval)); fall2_out.write('%g\t' %(tval))
         fall3_out.write('%g\t' %(tval))
@@ -114,9 +116,8 @@ for pdi_val in pdi_arr:
                 continue
             
             mon_arr = ret_mons(wdir + '/chainlist.dat')
-            rg_case = anaout_dir + '/Rg_casenum_' + str(run_arr[casenum])+ \
-                      '_T_' + str(tval) + '.dat'
-            fcase_rg = open(rg_case,'w')
+            fcase_rg = open(anaout_dir + '/Rg_casenum_' + str(run_arr[casenum])+ \
+                            '_T_' + str(tval) + '.dat','w')
             fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
                            %('ChainID','Nmons','<Rg^2>','<Rg^4>','Rg4/rg2^2'))
 
@@ -146,7 +147,7 @@ for pdi_val in pdi_arr:
             fcase_rg.close() # close writing for each case 
             chain_rg2 += case_rg2/nchains
             chain_rg4 += case_rg4/nchains
-            al     = (case_rg4)/(case_rg2*case_rg2)
+            al         = (nchains*case_rg4)/(case_rg2*case_rg2)
             alpha += al 
             ncases_pertemp += 1 
 
@@ -182,7 +183,7 @@ for pdi_val in pdi_arr:
     fc_rg.close();fall_out.close(); fall2_out.close(); fall3_out.close()
 
     # Do NOT continue if no PDI-temps are found
-    if len(rgall) == 0: #to account for boolean values
+    if pdiflag == -1: 
         continue
 
     # Save distribution for select temperatures
