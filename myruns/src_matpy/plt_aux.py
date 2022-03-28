@@ -155,7 +155,6 @@ def ret_mons(inpfyle):
 # All Rg plots
 def plot_allrg(df,fig_dir,pdi_val):
     #Plot Rg^2 - T
-    maxval = df['<Rg^2>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<Rg^2>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{2}$ ($nm^{2}$)') 
@@ -164,7 +163,6 @@ def plot_allrg(df,fig_dir,pdi_val):
     plt.close(figa)
     
     #Plot Rg^4 - T
-    maxval = df['<Rg^4>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<Rg^4>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{4}$ ($nm^{4}$)') 
@@ -173,7 +171,6 @@ def plot_allrg(df,fig_dir,pdi_val):
     plt.close(figa)
     
     #Plot Alpha - T
-    maxval = df['Rg4/Rg2^2'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['Rg4/Rg2^2'])
     set_axes(axa,plt,r'Temperature ($K$)',\
@@ -184,7 +181,6 @@ def plot_allrg(df,fig_dir,pdi_val):
 #------------------------------------------------------------------
 # Plot Tg
 def plot_tg(df,fig_dir,pdi_val):
-    maxval = df['SV_NPT'].max()
     figa, axa = plt.subplots()
     set_axes(axa,plt,r'Temperature ($K$)',r'Specific Volume ($cm^3/g$)')
     axa.scatter(x=df['Temp'],y=df['SV_NPT'])
@@ -195,7 +191,6 @@ def plot_tg(df,fig_dir,pdi_val):
 # All shape plots
 def plot_allshape(df,fig_dir,pdi_val):
     #Plot lam_x - T
-    maxval = df['<lam_1>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<lam_1>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{x}$ ($nm^{2}$)') 
@@ -204,7 +199,6 @@ def plot_allshape(df,fig_dir,pdi_val):
     plt.close(figa)
 
     #Plot lam_y - T
-    maxval = df['<lam_2>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<lam_2>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{y}$ ($nm^{2}$)') 
@@ -213,7 +207,6 @@ def plot_allshape(df,fig_dir,pdi_val):
     plt.close(figa)
 
     #Plot lam_z - T
-    maxval = df['<lam_3>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<lam_3>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{z}$ ($nm^{2}$)') 
@@ -222,7 +215,6 @@ def plot_allshape(df,fig_dir,pdi_val):
     plt.close(figa)
 
     #Plot kappa - T
-    maxval = df['<\kappa>'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['<\kappa>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$\kappa$ ($nm^{4}$)') 
@@ -233,7 +225,6 @@ def plot_allshape(df,fig_dir,pdi_val):
 # Plot b-nu data
 def plot_rgscaling(df,fig_dir,pdi_val):
     #Plot b - T
-    maxval = df['b'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['b'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$C_{l}$ ($nm$)') 
@@ -242,7 +233,6 @@ def plot_rgscaling(df,fig_dir,pdi_val):
     plt.close(figa)
 
     #Plot nu-T
-    maxval = df['nu'].max()
     figa, axa = plt.subplots()
     axa.scatter(x=df['Temp'],y=df['nu'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$\nu$') 
@@ -250,6 +240,32 @@ def plot_rgscaling(df,fig_dir,pdi_val):
                  dpi=figa.dpi)
     plt.close(figa)
 #------------------------------------------------------------------
+# All shape plots
+def plot_allhb(df,fig_dir,pdi_val):
+    #Plot intra HB - T
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['Intra_HB'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'#Intra HB') 
+    figa.savefig(fig_dir + '/'+'hbintra_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot inter HB - T
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['Inter_HB'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'Inter_HB') 
+    figa.savefig(fig_dir + '/'+'hbinter_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot tot HB - T
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['Tot_HB'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'#HB') 
+    figa.savefig(fig_dir + '/'+'hbtot_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+#------------------------------------------------------------------    
 # Plot axis details
 def set_axes(axhdl,plt,xlabel,ylabel):
     plt.style.use('seaborn-colorblind')
