@@ -16,7 +16,6 @@ from compute_props import *
 #------------------------------------------------------------------
 
 # Input data
-pdi_val   = 1.8
 run_arr   = [1] # run numbers for a given biomass
 temp_arr  = [300,400,500]
 pdi_arr   = [1.0,1.8,3.0]
