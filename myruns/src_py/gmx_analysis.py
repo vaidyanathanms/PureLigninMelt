@@ -11,7 +11,7 @@ import shutil
 import glob
 import math
 import subprocess
-from aux_gmx_functions import * # function definitions
+from aux_gmx_analysis import * # function definitions
 #------------------------------------------------------------------
 
 # Version Info and parse input conditions
@@ -22,19 +22,19 @@ print("Version: May-11-2021")
 # Input Keys
 rg_calc    = 1 # Calculate rg/shape factor
 seg_rgcalc = 1 # Calculate segmental rg
-rdf_calc   = 0 # Calculate rdf
-tg_calc    = 0 # Calculate densities for Tg
-hb_calc    = 0 # Calculate hydrogen bonding
-msd_calc   = 0 # Calculate msd
+rdf_calc   = 1 # Calculate rdf
+tg_calc    = 1 # Calculate densities for Tg
+hb_calc    = 1 # Calculate hydrogen bonding
+msd_calc   = 1 # Calculate msd
 #------------------------------------------------------------------
 
 # Input Data
 run_all   = 1 # 1-copy files and run, 0-NO run (copies files)
-expts     = 1 # 1-expt data, 0 - sztheory
+expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [3.7]# dispersity values
-run_arr   = [1,2]  # run number for a given dispersity
+disp_arr  = [3.0] #[1.0,1.8,3.0,3.7]# dispersity values
+run_arr   = [4] #[1,2,3,4]  # run number for a given dispersity
 temp_min  = 250  # Minimum temperature
 temp_max  = 501  # Maximum temperature (< max; add +1 to desired)
 temp_dt   = 10   # Temperature dt
