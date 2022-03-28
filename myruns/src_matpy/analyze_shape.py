@@ -17,12 +17,12 @@ from plt_inps import *
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
-temp_max  = 501 # Maximum temperature
+temp_max  = 301 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
-anadir_head = 'all_rg' # change this for different analysis
+anadir_head = 'all_radgyr' # change this for different analysis
 start_frac  = 0.3 # starting point for averaging
 #------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ for pdi_val in pdi_arr:
 
 
     # Averaged outputs
-    sf_fyl  = anaout_dir + '/shapefacdata.dat'
+    sf_fyl  = anaout_dir + '/shapefacdata_'+str(pdi_val)+'.dat' 
     fall_sf = open(sf_fyl,'w')
     fall_sf.write('%s\t%s\t%s\t%s\t%s\t%s\n'\
                   %('Temp','<lam_1>','<lam_2>','<lam_3>','<\kappa>',\
@@ -68,7 +68,7 @@ for pdi_val in pdi_arr:
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
         sf_all = []
-        chain_lam1 = 0; chain_lam2 = 0; chain_lam3 = 0; chain_kapa = 0
+        avgd_lam1 = 0; avgd_lam2 = 0; avgd_lam3 = 0; avgd_kappa = 0
         ncases_pertemp = 0
         fall_out.write('%g\t' %(tval))
         
@@ -84,7 +84,7 @@ for pdi_val in pdi_arr:
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
 
             # Check file(s)
-            list_of_files = glob.glob(tdir + '/eig_nptmain_*.xvg')
+            list_of_files = glob.glob(wdir + '/eig_nptmain_*.xvg')
             if list_of_files == []:
                 fall_out.write('%s\t' %('N/A'));
                 print("Eigenvalue files do not exist for ", tval)
@@ -102,8 +102,8 @@ for pdi_val in pdi_arr:
                 print('ERR: chainlist.dat not found')
                 continue
 
-            mon_arr = ret_mons(tdir + '/chainlist.dat')
-            sf_case = res_dir + '/shape_casenum_' + str(casenum)+ \
+            mon_arr = ret_mons(wdir + '/chainlist.dat')
+            sf_case = anaout_dir + '/shape_casenum_' + str(run_arr[casenum])+ \
                       '_T_' + str(tval) + '.dat'
             fcase_sf = open(sf_case,'w')
             fcase_sf.write('%s\t%s\t%s\t%s\t%s\t%s\n' \
@@ -125,8 +125,8 @@ for pdi_val in pdi_arr:
                 l2 = len(data[:,1])
                 lam1 = np.average(data[l1:l2,2])
                 lam2 = np.average(data[l1:l2,3])
-                lam2 = np.average(data[l1:l2,4])
-                tr = (lam1+lam2+lam3)/3
+                lam3 = np.average(data[l1:l2,4])
+                tr   = (lam1+lam2+lam3)/3
                 kappa = 1.5*((lam1-tr)**2 + (lam2-tr)**2 + (lam3-tr)**2)
                 kappa /= (lam1+lam2+lam3)**2
                 fcase_sf.write('%g\t%g\t%g\t%g\t%g\t%g\n' \
@@ -139,20 +139,18 @@ for pdi_val in pdi_arr:
                 case_kapa += kappa 
 
                 # append shape factor data
-                tr_all = (data[l1:l2,2]+data[l1:l2,3]+data[l1:l2,4])/3
-                sf_all = np.append(sf_all,1.5*((data[l1:l2,2]-tr_all)**2 + \
-                                               (data[l1:l2,3]-tr_all)**2 + \
-                                               (data[l2:l2,4]-tr_all)**2))
+                sf_all = np.append(sf_all,kappa)
+                                   
                 #end for fyle in list_of_files                 
                 
             fcase_sf.close() #close writing for each case    
-            chain_lam1 += case_lam1/nchains
-            chain_lam2 += case_lam2/nchains
-            chain_lam3 += case_lam3/nchains
-            chain_kapa += case_kappa/nchains
+            avgd_lam1 += case_lam1/nchains
+            avgd_lam2 += case_lam2/nchains
+            avgd_lam3 += case_lam3/nchains
+            avgd_kappa += case_kapa/nchains
             ncases_pertemp += 1
             
-            fall_out.write('%g\t' %(case_kappa/nchains)) #write each case kappa
+            fall_out.write('%g\t' %(case_kapa/nchains)) #write each case kappa
             # end for casenum in len(range(run_arr))
 
         # Do NOT continue if zero cases are found
@@ -161,13 +159,13 @@ for pdi_val in pdi_arr:
             continue
 
         # Write averages over different cases for each temp
-        chain_lam1 /= len(run_arr)
-        chain_lam2 /= len(run_arr)
-        chain_lam3 /= len(run_arr)
-        chain_kapa /= len(run_arr)
+        avgd_lam1 /= ncases_pertemp
+        avgd_lam2 /= ncases_pertemp
+        avgd_lam3 /= ncases_pertemp
+        avgd_kappa /= ncases_pertemp
         fall_out.write('%g\n' %(ncases_pertemp))
-        fall_sf.write('%g\t%g\t%g\t%g\t%g\t%d\n' %(tval,chain_lam1,chain_lam2,\
-                                                   chain_lam3,chain_kapa,\
+        fall_sf.write('%g\t%g\t%g\t%g\t%g\t%d\n' %(tval,avgd_lam1,avgd_lam2,\
+                                                   avgd_lam3,avgd_kappa,\
                                                    ncases_pertemp))
 
         # plot kappa-distribution across all cases
@@ -179,7 +177,7 @@ for pdi_val in pdi_arr:
     fall_out.close(); fall_sf.close()
     
     # Do NOT continue if no PDI-temps are found
-    if len(rgall) == 0: #to account for boolean values
+    if len(sf_all) == 0: #to account for boolean values
         continue
 
     # Save distribution for select temperatures
@@ -193,6 +191,7 @@ for pdi_val in pdi_arr:
     plot_allshape(df,figout_dir,pdi_val) #end of PDI loop
 
 #------- Plot Kappa-Temp data for all PDI values together--------------------
+print("Plotting all shape data as a function of PDI..")
 fig2, ax2 = plt.subplots()
 set_axes(ax2,plt,r'Temperature ($K$)',r'\langle \kappa \rangle')
 
@@ -208,7 +207,7 @@ for pdi_val in pdi_arr:
     
     df=pd.read_table(anaout_dir + '/' + fname)
     print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['\kappa'],label=pdileg)
+    ax2.scatter(x=df['Temp'],y=df['<\kappa>'],label=pdileg)
     
 fig2.savefig(figout_dir + '/'+'kap_allpdi.png',dpi=fig2.dpi)
 fig2.savefig(figout_dir + '/'+'kap_allpdi.eps',format='eps')

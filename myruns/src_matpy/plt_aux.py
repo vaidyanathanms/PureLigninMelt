@@ -14,6 +14,9 @@ import glob
 import math
 import fileinput
 import subprocess
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 #------------------------------------------------------------------
 
 # General copy script
@@ -154,7 +157,7 @@ def plot_allrg(df,fig_dir,pdi_val):
     #Plot Rg^2 - T
     maxval = df['<Rg^2>'].max()
     figa, axa = plt.subplots()
-    axa.scatter(x=df['Temperature'],y=df['<Rg^2>'])
+    axa.scatter(x=df['Temp'],y=df['<Rg^2>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{2}$ ($nm^{2}$)') 
     figa.savefig(fig_dir + '/'+'rg2_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
@@ -163,7 +166,7 @@ def plot_allrg(df,fig_dir,pdi_val):
     #Plot Rg^4 - T
     maxval = df['<Rg^4>'].max()
     figa, axa = plt.subplots()
-    axa.scatter(x=df['Temperature'],y=df['<Rg^4>'])
+    axa.scatter(x=df['Temp'],y=df['<Rg^4>'])
     set_axes(axa,plt,r'Temperature ($K$)',r'$R_{g}^{4}$ ($nm^{4}$)') 
     figa.savefig(fig_dir + '/'+'rg4_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
@@ -172,7 +175,7 @@ def plot_allrg(df,fig_dir,pdi_val):
     #Plot Alpha - T
     maxval = df['Rg4/Rg2^2'].max()
     figa, axa = plt.subplots()
-    axa.scatter(x=df['Temperature'],y=df['Rg4/Rg2^2'])
+    axa.scatter(x=df['Temp'],y=df['Rg4/Rg2^2'])
     set_axes(axa,plt,r'Temperature ($K$)',\
              r'$\langle R_{g}^{4} \rangle/ \langle R_{g}^{2} \rangle^{2}$') 
     figa.savefig(fig_dir + '/'+'alpha' + str(pdi_val) + '.png',\
@@ -188,6 +191,64 @@ def plot_tg(df,fig_dir,pdi_val):
     figa.savefig(fig_dir + '/'+'sv_' + str(pdi_val) + '.png',\
                  dpi=figa.dpi)
     return figa, axa
+#------------------------------------------------------------------
+# All shape plots
+def plot_allshape(df,fig_dir,pdi_val):
+    #Plot lam_x - T
+    maxval = df['<lam_1>'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['<lam_1>'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{x}$ ($nm^{2}$)') 
+    figa.savefig(fig_dir + '/'+'lamx_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot lam_y - T
+    maxval = df['<lam_2>'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['<lam_2>'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{y}$ ($nm^{2}$)') 
+    figa.savefig(fig_dir + '/'+'lamy_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot lam_z - T
+    maxval = df['<lam_3>'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['<lam_3>'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$\lambda_{z}$ ($nm^{2}$)') 
+    figa.savefig(fig_dir + '/'+'lamz_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot kappa - T
+    maxval = df['<\kappa>'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['<\kappa>'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$\kappa$ ($nm^{4}$)') 
+    figa.savefig(fig_dir + '/'+'kappa_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+#------------------------------------------------------------------
+# Plot b-nu data
+def plot_rgscaling(df,fig_dir,pdi_val):
+    #Plot b - T
+    maxval = df['b'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['b'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$C_{l}$ ($nm$)') 
+    figa.savefig(fig_dir + '/'+'lamx_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
+
+    #Plot nu-T
+    maxval = df['nu'].max()
+    figa, axa = plt.subplots()
+    axa.scatter(x=df['Temp'],y=df['nu'])
+    set_axes(axa,plt,r'Temperature ($K$)',r'$\nu$') 
+    figa.savefig(fig_dir + '/'+'lamx_' + str(pdi_val) + '.png',\
+                 dpi=figa.dpi)
+    plt.close(figa)
 #------------------------------------------------------------------
 # Plot axis details
 def set_axes(axhdl,plt,xlabel,ylabel):
