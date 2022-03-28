@@ -17,7 +17,7 @@ from plt_inps import *
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
-temp_max  = 301 # Maximum temperature
+temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
@@ -138,7 +138,6 @@ for pdi_val in pdi_arr:
     
     df=pd.read_table(anaout_dir + '/' + fname)
     print('Plotting', pdi_val)
-    pdiindx += 1
     ax2.scatter(x=df['Temp'],y=df['nu'],label = pdileg)
     ax3.scatter(x=df['Temp'],y=df['b'],label = pdileg)
     
