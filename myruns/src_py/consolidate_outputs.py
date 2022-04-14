@@ -11,7 +11,7 @@ import glob
 from subprocess import call
 from general_functions import *
 #---------input flags------------------------------------------
-rest_job_flag  = 1 #copy restart/job files
+rest_job_flag  = 0 #copy restart/job files
 fyl_flag       = 1 #copy output files
 
 #---------input details----------------------------------------
@@ -52,14 +52,23 @@ for bio_indx in range(len(biom_arr)): # loop in biomass
     for pdi_val in pdi_arr:
 
         #--------------Create top-level output directories---------------
-        allop_main = headdir + '/results_pdi_' + str(pdi_val)
-        if not os.path.isdir(allop_main):
-            os.mkdir(allop_main)
+        if fyl_flag == 1:
+            all_opmain = headdir + '/sim_results'
+            if not os.path.isdir(allop_main):
+                os.mkdir(allop_main)
 
-        supp_dir = scr_dir + '/' + inp_type + '/'+ biomass +\
-                   '/restartfiles_pdi_' + str(pdi_val)
-        if not os.path.isdir(supp_dir):
-            os.mkdir(supp_dir)
+            allop_main = all_opmain + '/results_pdi_' + str(pdi_val)
+            if not os.path.isdir(allop_main):
+                os.mkdir(allop_main)
+
+        if rest_flag == 1:
+            supp_dir = scr_dir + '/all_restarts'
+            if not os.path.isdir(supp_dir):
+                os.mkdir(supp_dir)
+            
+            supp_dir = supp_dir + '/restartfiles_pdi_' + str(pdi_val)
+            if not os.path.isdir(supp_dir):
+                os.mkdir(supp_dir)
 
       
         for casenum in range(len(run_arr)): # loop in runarr
