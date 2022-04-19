@@ -56,7 +56,7 @@ if py_rgflag ; then
     mkdir -p ${allresultdir}
     wait
 
-    for (( chcnt_i = 0; chcnt_i <= nchains-1; chcnt_i++ ))
+    for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
     do
 	printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${rgout}_${chcnt_i}.xvg &
 	wait
@@ -83,7 +83,7 @@ if py_rdfflag ; then
     mkdir -p ${rdfout_dir}
        
     # Compute inter/intra RDF
-    for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+    for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
     do
 	srun gmx rdf -f traj_npt_main_nojump_100ps.trr -s py_tprfile -sf rdf${chcnt_i}.inp -o ${rdfout}_${chcnt_i}.xvg
 	wait
@@ -137,7 +137,7 @@ if py_hbflag ; then
     mkdir -p ${hbout_dir}
 
     # Compute inter/intra HB
-    for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+    for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
     do
 	# First make corresponding index file
 	srun gmx select -s py_tprfile -on hb${chcnt_i}.ndx -sf hb${chcnt_i}.inp
@@ -230,7 +230,7 @@ if py_msdflag ; then
     
     mkdir -p ${msdresultdir}
     
-    for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+    for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
     do
 	printf "${chcnt_i}" | srun gmx msd -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${msdout}_${chcnt_i}.xvg &
     done

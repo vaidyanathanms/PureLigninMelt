@@ -51,7 +51,7 @@ printf "Computing MSD of chains"
 
 mkdir -p ${msdresultdir}
 
-for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
 do
     printf "${chcnt_i}" | srun gmx msd -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${msdout}_${chcnt_i}.xvg &
 done

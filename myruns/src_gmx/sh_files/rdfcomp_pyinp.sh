@@ -39,7 +39,7 @@ if ! test -f "traj_npt_main_nojump_100ps.trr"; then
 fi
 
 # Compute inter/intra RDF
-for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
 do
     srun gmx rdf -f traj_npt_main_nojump_100ps.trr -s py_tprfile -sf rdf${chcnt_i}.inp -o ${rdfout}_${chcnt_i}.xvg
 wait

@@ -55,7 +55,7 @@ printf "Computing Rg of chains"
 mkdir -p ${allresultdir}
 wait
 
-for (( chcnt_i = 0; chcnt_i <= nchains-1; chcnt_i++ ))
+for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
 do
     printf "${chcnt_i}" | srun gmx gyrate -f traj_npt_main_nojump_100ps.trr -s py_tprfile -n chindx.ndx -o ${rgout}_${chcnt_i}.xvg &
     wait

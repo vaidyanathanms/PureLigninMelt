@@ -39,7 +39,7 @@ if ! test -f "traj_npt_main_nojump_100ps.trr"; then
 fi
 
 # Compute inter/intra HB
-for (( chcnt_i = 0; chcnt_i < nchains-1; chcnt_i++ ))
+for (( chcnt_i = 0; chcnt_i <= nchains; chcnt_i++ ))
 do
     # First make corresponding index file
     srun gmx select -s py_tprfile -on hb${chcnt_i}.ndx -sf hb${chcnt_i}.inp
