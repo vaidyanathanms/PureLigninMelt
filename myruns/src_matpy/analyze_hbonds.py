@@ -18,7 +18,7 @@ from plt_inps import *
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
 temp_max  = 301 # Maximum temperature
-temp_dt   = 10  # Temperature dt
+temp_dt   = 50  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
@@ -99,15 +99,25 @@ for pdi_val in pdi_arr:
                 fall2_out.write('%s\t' %('DiffNchains'))
                 print('ERR: Mismatch in number of analysis file and input',\
                       nchains, len(inter_list_of_files))
-                print(intra_list_of_files); print(inter_list_of_files)
                 continue
 
             fcase_hb = open(anaout_dir + '/hb_casenum_' + str(run_arr[casenum])+ \
                       '_T_' + str(tval) + '.dat','w')
-            fcase_rg.write('%s\t%s\t%s\t%s\t%s\n' \
+            fcase_hb.write('%s\t%s\t%s\t%s\t%s\n' \
                            %('ChainID','Nmons','IntraHB','InterHB','TotHB'))
 
             case_intra = 0; case_inter = 0
+            if not os.path.exists(wdir + '/chainlist.dat'):
+                mon_arr = np.full((nchains),20)
+
+                #fall_out.write('%s\t' %('Nochainlist'))
+                #fall2_out.write('%s\t' %('Nochainlist'))
+                #fall3_out.write('%s\t' %('Nochainlist'))
+                print('ERR: chainlist.dat not found')
+                #continue
+            else:
+                mon_arr = ret_mons(wdir + '/chainlist.dat')
+
             for fyle in intra_list_of_files: # intra chain loop
                 chid = ret_chid(fyle)
 
@@ -143,19 +153,19 @@ for pdi_val in pdi_arr:
                 inter = np.average((data[l1:l2,1]))
                 case_inter += inter
 
-                fcase_rg.write('%g\t%g\t%g\t%g\t%g\n'\
-                               %(chid,int(mon_arr[chid]),intra,inter,\
+                fcase_hb.write('%g\t%g\t%g\t%g\t%g\n'\
+                               %(chid,int(mon_arr[chid-1]),intra,inter,\
                                  intra+inter))
                  
             # end for fyle in inter/intra chain loops
 
-            fcase_rg.close() # close writing for each case 
+            fcase_hb.close() # close writing for each case 
             intrach_hb += case_intra/nchains
             interch_hb += case_inter/nchains
             tot_hb     += case_intra/nchains + case_inter/nchains
             ncases_pertemp += 1 
 
-            # Write average rg2/rg4/alpha for each case
+            # Write average intra/inter hbonds
             fall_out.write('%g\t' %(case_intra/nchains))
             fall2_out.write('%g\t' %(case_inter/nchains)) 
             # end for casenum in len(range(run_arr))
@@ -224,4 +234,4 @@ plt.close(fig3)
 fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png',dpi=fig4.dpi)
 fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
 plt.close(fig4)
-#----------------------End of Rg2 Analysis------------------------------
+#----------------------End of Hbond Analysis------------------------------
