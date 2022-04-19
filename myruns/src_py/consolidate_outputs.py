@@ -21,7 +21,7 @@ pdi_arr   = [1.0,1.8,3.0,3.7,'expts'] # dispersity values
 run_arr   = [1,2,3,4]         # run number for a given dispersity
 temp_min  = 250     # Minimum temperature
 temp_max  = 501     # Maximum temperature (< max; add +1 to desired)
-temp_dt   = 10      # Temperature dt
+temp_dt   = 50      # Temperature dt
 
 #--------file_lists--------------------------------------------
 #Give prefix for files to be copied with *
@@ -53,15 +53,15 @@ for bio_indx in range(len(biom_arr)): # loop in biomass
 
         #--------------Create top-level output directories---------------
         if fyl_flag == 1:
-            all_opmain = headdir + '/sim_results'
+            allop_main = headdir + '/sim_results'
             if not os.path.isdir(allop_main):
                 os.mkdir(allop_main)
 
-            allop_main = all_opmain + '/results_pdi_' + str(pdi_val)
+            allop_main = allop_main + '/results_pdi_' + str(pdi_val)
             if not os.path.isdir(allop_main):
                 os.mkdir(allop_main)
 
-        if rest_flag == 1:
+        if rest_job_flag == 1:
             supp_dir = scr_dir + '/all_restarts'
             if not os.path.isdir(supp_dir):
                 os.mkdir(supp_dir)
