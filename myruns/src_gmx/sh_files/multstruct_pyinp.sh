@@ -25,7 +25,7 @@ echo $PWD
 if ! test -f "traj_npt_main_nojump_100ps.trr"; then
     if ! test -f "npt_main.tpr"; then
 	printf "tpr/trr files not found"
-	exit 1
+	break #exit 1
     else
 	printf "0" | srun gmx trjconv -s npt_main.tpr -f traj_npt_main.trr -dt 100 -pbc nojump -o traj_npt_main_nojump_100ps.trr
 	wait
@@ -42,7 +42,7 @@ if py_rgflag ; then
     # Make Index files
     if ! test -f "rgchaininp.inp"; then
 	echo "rgchaininp.inp not found"
-	exit 1
+	break #exit 1
     fi
 
     if ! test -f "chindx.ndx"; then 
@@ -121,6 +121,8 @@ if py_rdfflag ; then
     srun gmx rdf -f traj_npt_main_nojump_100ps.trr -s py_tprfile -sf Pall.inp -o Pall.xvg
     mv Pall.xvg ${rdfout_dir}
     mv Pall.inp ${rdfout_dir}
+    cp chainlist.dat ${rdfout_dir}
+    cp chindx.ndx ${rdfout_dir}
     wait
     
     printf "End of RDF calculations.."
@@ -159,7 +161,7 @@ if py_hbflag ; then
     if ! test -f resinp.ndx; then
 	if ! test -f "resinp.inp"; then
 	    echo "resinp.inp for residue indices not found!"
-	    exit 1
+	    break #exit 1
 	else
 	    srun gmx select -s py_tprfile -on resinp.ndx -sf resinp.inp
 	    wait
@@ -179,6 +181,8 @@ fi
     wait
     mv hb_f*.xvg ${hbout_dir}
     mv resinp.inp ${hbout_dir}
+    cp chainlist.dat ${hbout_dir}
+    cp chindx.ndx ${hbout_dir}
     mv resinp.ndx ${hbout_dir}
     wait
 
@@ -196,7 +200,7 @@ if py_segrgflag ; then
     # Search for compRg.psf in the superdirectory
     if ! test -f "../init_files/compRg.psf"; then
 	printf "psf file not found"
-	exit 1
+	break #exit 1
     fi
     
     
@@ -213,7 +217,8 @@ if py_segrgflag ; then
     
     mv rg_allsegs.dat ${allresultdir}
     mv RgvsN.dat ${allresultdir}
-
+    cp chainlist.dat ${allresultdir}
+    cp chindx.ndx ${allresultdir}
     printf "End of segmental Rg calculations.."
 fi
 #----------------------End Segmental Rg calculation ----------------------------
