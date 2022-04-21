@@ -17,9 +17,9 @@ from plt_inps import *
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
-temp_max  = 301 # Maximum temperature
+temp_max  = 501 # Maximum temperature
 temp_dt   = 50  # Temperature dt
-pdi_arr   = [1.0,1.8,3.0,'expts']
+pdi_arr   = [1.0,1.8,3.0,'3.7','expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
 anadir_head = 'all_hbs' # change this for different analysis
@@ -101,8 +101,8 @@ for pdi_val in pdi_arr:
                       nchains, len(inter_list_of_files))
                 continue
 
-            fcase_hb = open(anaout_dir + '/hb_casenum_' + str(run_arr[casenum])+ \
-                      '_T_' + str(tval) + '.dat','w')
+            fcase_hb = open(anaout_dir + '/hb_pdi_' + str(pdi_val) + '_casenum_'\
+                            + str(run_arr[casenum])+ '_T_' + str(tval) + '.dat','w')
             fcase_hb.write('%s\t%s\t%s\t%s\t%s\n' \
                            %('ChainID','Nmons','IntraHB','InterHB','TotHB'))
 
@@ -207,6 +207,8 @@ set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
 fig4, ax4 = plt.subplots()
 set_axes(ax4,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
 
+ymaxintra = 0; ymaxinter=0; ymaxtotal=0
+yminintra = 1000; ymininter=1000; ymintotal=1000
 for pdi_val in pdi_arr:
     if pdi_val == 'expts':
         pdileg = 'PDI: Experimental Distribution'
@@ -222,20 +224,32 @@ for pdi_val in pdi_arr:
     ax2.scatter(x=df['Temp'],y=df['Intra_HB'],label=pdileg)
     ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
     ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
+    max_intra = df['Intra_HB'].max(); min_intra = df['Intra_HB'].min() 
+    max_inter = df['Inter_HB'].max(); min_inter = df['Inter_HB'].min() 
+    max_total = df['Tot_HB'].max(); min_total = df['Tot_HB'].min() 
+    if max_intra > ymaxintra: ymaxintra = max_intra
+    if max_inter > ymaxinter: ymaxinter = max_inter 
+    if max_total > ymaxtotal: ymaxtotal = max_total 
+    if min_intra < yminintra: yminintra = min_intra 
+    if min_inter < ymininter: ymininter = min_inter 
+    if min_total < ymintotal: ymintotal = min_total 
 
 fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png')
 fig2.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
-plt.legend(loc=0)
+ax2.set_ylim([0.9*yminintra, 1.2*ymaxintra])
+plt.legend(loc='upper right')
 plt.close(fig2)
 
 
 fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
 fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
-ax3.legend(loc=0)
+ax2.set_ylim([0.9*ymininter, 1.2*ymaxinter])
+plt.legend(loc='upper right')
 plt.close(fig3)
 
 fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png')
 fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
-ax4.legend(loc=0)
+ax4.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
+plt.legend(loc='upper right')
 plt.close(fig4)
 #----------------------End of Hbond Analysis------------------------------
