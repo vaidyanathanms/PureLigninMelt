@@ -23,10 +23,11 @@ orange = '#FFA500'; dark_g = '#006400'; brown = '#8B4513'
 clr_arr = [dark_g,orange,brown,'b','k','m']
 mrk_arr = ['o','d','s']
 lne_arr = ['-','--']
+plt.rcParams['figure.dpi'] = 1200
 plt.rc('legend',fontsize=16) # fontsize of the legends
 plt.rcParams.update({'font.size': 16}) # other fonts
 plt.rcParams.update({'figure.autolayout': True})
-#plt.rcParams['font.family'] = 'serif'
+#plt.rcParams['font.family'] = 'Helvetica'
 #plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 #plt.rcParams.update({'font.family': 'Times New Roman'})
 #------------------------------------------------------------------
