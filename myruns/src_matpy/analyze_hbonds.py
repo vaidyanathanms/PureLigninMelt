@@ -199,13 +199,13 @@ for pdi_val in pdi_arr:
 #------- Plot HB-Temp data for all PDI values together--------------------
 print("Plotting all HB data as a function of PDI..")
 fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'#HB_{\rm{Intra}}')
+set_axes(ax2,plt,r'Temperature ($K$)',r'#HB$_{\rm{Intra}}$')
 
 fig3, ax3 = plt.subplots()
-set_axes(ax3,plt,r'Temperature ($K$)',r'#HB_{\rm{Inter}}')
+set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
 
 fig4, ax4 = plt.subplots()
-set_axes(ax4,plt,r'Temperature ($K$)',r'#HB_{\rm{Total}}')
+set_axes(ax4,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
 
 for pdi_val in pdi_arr:
     if pdi_val == 'expts':
@@ -222,16 +222,20 @@ for pdi_val in pdi_arr:
     ax2.scatter(x=df['Temp'],y=df['Intra_HB'],label=pdileg)
     ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
     ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
-    
-fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png',dpi=fig2.dpi)
+
+fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png')
 fig2.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
+plt.legend(loc=0)
 plt.close(fig2)
 
-fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png',dpi=fig3.dpi)
+
+fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
 fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
+ax3.legend(loc=0)
 plt.close(fig3)
 
-fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png',dpi=fig4.dpi)
+fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png')
 fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
+ax4.legend(loc=0)
 plt.close(fig4)
 #----------------------End of Hbond Analysis------------------------------
