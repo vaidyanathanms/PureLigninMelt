@@ -12,15 +12,15 @@ import math
 from plt_aux import *
 from compute_props import *
 from plt_inps import *
+from scipy.stats import sem
 #------------------------------------------------------------------
 
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
-temp_min  = 250 # Minimum temperature
+temp_min  = 300 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
-pdi_arr   = [1.0,1.8,3.0,'expts']
-mark_arr  = ['o','d','s']
+pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
 nchains   = 20
 anadir_head = 'all_dens' # change this for different analysis
 start_frac  = 0.3 # starting point for averaging
@@ -56,11 +56,13 @@ for pdi_val in pdi_arr:
     # Set arrays
     yrho_avg = [] # Average density
     ncasetot = [] # Total cases per temperature
-
+    rho_err  = [] # Error in average density
+    sv_err   = [] # Error in average specific volume 
+    
     # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
-        temp_leg  = str(tval)
-        yall = []
+        temp_leg   = str(tval);
+        rho_allarr = [] # density for all cases for a given temp
         yavg = 0; ncases_pertemp = 0
         fall_out.write('%g\t' %(tval))
         
@@ -89,26 +91,31 @@ for pdi_val in pdi_arr:
                          not line.lstrip().startswith('@'))
                 data  = np.loadtxt(lines)
 
-            yall = np.append(yall,data[:,1]) #append new y-data
-            startpt = int(start_frac*len(yall))
-            rho_case = np.average(data[startpt:len(yall)-1,1])
+            l1 = int(start_frac*len(data[:,1]))
+            l2 = len(data[:,1])
+            rho_case = np.average(data[l1:l2,1]) #average for a given case
             yavg += rho_case
             ncases_pertemp += 1
+            rho_allarr = np.append(rho_allarr,rho_case) #append to allarr
             fall_out.write('%g\t' %(rho_case)) # Write to file
              
             # plot time-density variations
             if casenum == 0 and tval in denarr: #end of casenum loop
                 ax1.plot(data[:,0],data[:,1],label=temp_leg)
             
-        # Do NOT continue if zero cases are found
+        # Do NOT proceed if zero cases are found
         if ncases_pertemp == 0:
+            yrho_avg = np.append(yrho_avg,0)
+            ncasetot = np.append(ncasetot,0)
+            rho_err  = np.append(rho_err,0)
             fall_out.write('%g\n' %(ncases_pertemp))
             continue
         
-        # append avg/totcases to yrho_avg
+        # append avg/totcases to yrho_avg, rho_err
         yrho_avg = np.append(yrho_avg,yavg/ncases_pertemp) 
-        ncasetot = np.append(ncasetot,ncases_pertemp) 
-        fall_out.write('%g\n' %(ncases_pertemp)) #end of tval loop
+        ncasetot = np.append(ncasetot,ncases_pertemp)
+        rho_err  = np.append(rho_err,sem(rho_allarr))
+        fall_out.write('%g\n' %(ncases_pertemp)) #end of tval (temp) loop
         
     # Do NOT continue if no PDI-temps are found
     if len(yrho_avg) == 0: #to account for boolean values
@@ -124,21 +131,29 @@ for pdi_val in pdi_arr:
 
     # Write SV-temperature data
     with open(anaout_dir +'/tgdata_'+str(pdi_val)+'.dat','w') as fc_tg:
-        fc_tg.write('%s\t%s\t%s\n' %('Temp','N_Cases','SV_NPT'))
+        fc_tg.write('%s\t%s\t%s\t%s\t%s\t%s\n' \
+                    %('Temp','N_Cases','rho_NPT','rho_err','SV_NPT','SV_err'))
         indx = 0
         for t_plt in range(temp_min,temp_max,temp_dt): # loop in temp
             if yrho_avg[indx] == 0:
                 indx += 1
                 continue
             # Specific Volume: 1000/yrho_avg[indx] (in cm^3/g)
-            fc_tg.write('%s\t%g\t%g\n' %(t_plt,ncasetot[indx]\
-                                         ,1000.0/yrho_avg[indx]))
+            # SV_err = d(rho)/rho^2
+            sv_mean = (1000.0/yrho_avg[indx])
+            sv_err  = (1000.0*rho_err[indx])/(yrho_avg[indx]**2)
+            fc_tg.write('%g\t%g\t%g\t%g\t%g\t%g\n'\
+                        %(t_plt,ncasetot[indx],yrho_avg[indx],\
+                          rho_err[indx],sv_mean,sv_err))
             indx += 1
 
     # Plot SV-temperature data for each PDI
     df=pd.read_table(anaout_dir +'/tgdata_'+str(pdi_val)+'.dat')
     figa,axa = plt.subplots()
     set_axes(axa,plt,r'Temperature ($K$)',r'Specific Volume ($cm^3$/$g$)')
+    plt.errorbar(x=df['Temp'],y=df['SV_NPT'],yerr=df['SV_err'],\
+                 label='Data',marker='o')
+    plt.legend(loc='upper left')
     tgval = compute_tg(df,axa) #compute tgval
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.png',dpi=figa.dpi)
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.eps',format='eps')
@@ -147,7 +162,8 @@ for pdi_val in pdi_arr:
 #------- Plot SV-Temp data for all PDI values together-----------------
 fig2, ax2 = plt.subplots()
 set_axes(ax2,plt,r'Temperature ($K$)',r'Specific Volume ($cm^{3}/g$)')
-
+ymaxref = 0; yminref = 1000
+indx=0
 for pdi_val in pdi_arr:
     if pdi_val == 'expts':
         pdileg = 'PDI: Experimental Distribution'
@@ -160,8 +176,14 @@ for pdi_val in pdi_arr:
     
     df=pd.read_table(anaout_dir + '/' + fname)
     print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['SV_NPT'],label=pdileg)
+    plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]
+                \,label=pdileg)
+    ymaxref, yminref = axlims(ymaxref,df['SV_NPT'].max(),\
+                              yminref,df['SV_NPT'].min()) 
+    indx += 1
     
+plt.legend(loc='upper left')
+ax2.set_ylim([0.9*yminref, 1.2*ymaxref])
 fig2.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig2.dpi)
 fig2.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
 plt.close(fig2)
