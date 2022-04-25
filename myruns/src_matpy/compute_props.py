@@ -45,8 +45,8 @@ def compute_tg(df,ax):
         if errlo + errhi < toterr:
             refcnt = cnt; toterr = errlo + errhi
             refpredlo = predlo; refpredhi = predhi
-    ax.plot(tvals[0:refcnt],refpredlo,'--',color='red',linewidth=2)
-    ax.plot(tvals[refcnt:lden],refpredhi,'--',color='red',linewidth=2)
+    ax.plot(tvals[0:refcnt],refpredlo,'--',color='red',linewidth=2,label='Fit')
+    ax.plot(tvals[refcnt:lden],refpredhi,'--',color='red',linewidth=2,label='Fit')
     return tvals[refcnt]
 #------------------------------------------------------------------ 
 
