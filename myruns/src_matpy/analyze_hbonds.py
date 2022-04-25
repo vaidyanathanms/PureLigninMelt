@@ -224,22 +224,19 @@ for pdi_val in pdi_arr:
     ax2.scatter(x=df['Temp'],y=df['Intra_HB'],label=pdileg)
     ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
     ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
-    max_intra = df['Intra_HB'].max(); min_intra = df['Intra_HB'].min() 
-    max_inter = df['Inter_HB'].max(); min_inter = df['Inter_HB'].min() 
-    max_total = df['Tot_HB'].max(); min_total = df['Tot_HB'].min() 
-    if max_intra > ymaxintra: ymaxintra = max_intra
-    if max_inter > ymaxinter: ymaxinter = max_inter 
-    if max_total > ymaxtotal: ymaxtotal = max_total 
-    if min_intra < yminintra: yminintra = min_intra 
-    if min_inter < ymininter: ymininter = min_inter 
-    if min_total < ymintotal: ymintotal = min_total 
+    ymaxintra, yminintra = axlims(ymaxintra,df['Intra_HB'].max(),\
+                                  yminintra,df['Intra_HB'].min()) 
+    ymaxinter, ymininter = axlims(ymaxinter,df['Inter_HB'].max(),\
+                                  ymininter,df['Inter_HB'].min()) 
+    ymaxtotal, ymintotal = axlims(ymaxtotal,df['Tot_HB'].max(),\
+                                  ymintotal,df['Tot_HB'].min()) 
+
 
 fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png')
 fig2.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
-ax2.set_ylim([0.9*yminintra, 1.2*ymaxintra])
 plt.legend(loc='upper right')
+ax2.set_ylim([0.9*yminintra, 1.2*ymaxintra])
 plt.close(fig2)
-
 
 fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
 fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
