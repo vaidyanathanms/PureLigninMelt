@@ -273,7 +273,13 @@ def set_axes(axhdl,plt,xlabel,ylabel):
     axhdl.set_xlabel(xlabel)
     axhdl.set_ylabel(ylabel)
     change_width(axhdl,0.2)
-#------------------------------------------------------------------    
+#------------------------------------------------------------------
+# find axes limits
+def axlims(yminref,ymin,ymaxref,ymax):
+    if ymax > ymaxref: ymaxref = ymax
+    if ymin < yminref: yminref = ymin
+    return ymaxref, yminref
+#------------------------------------------------------------------
 # Submit density job script
 def submit_dens(currdir,workdir,f_name,tmin,tmax,tdt):
     os.chdir(workdir)
