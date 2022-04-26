@@ -46,8 +46,8 @@ gpu       = 0 # 0-no gpu, 1 - gpu
 expts     = 0 # 1-expt data, 0 - sztheory
 inp_type  = 'melts' # melts, solvents, cosolvents
 biomass   = 'WT' # name of the biomass type
-disp_arr  = [1.0,1.8,3.0,3.7]
-run_arr   = [1,2,3,4] #[1 ,4] # number of independent runs for a given biomass
+disp_arr  = [3.7]#[1.0,1.8,3.0,3.7]
+run_arr   = [2] #[1 ,4] # number of independent runs for a given biomass
 high_temp = 600 # Run at high temperature for relaxation
 temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature (< max; add +1 to desired)
@@ -202,7 +202,9 @@ for disp_val in range(len(disp_arr)): # loop in polydisperse array
                     new_conffile = find_hightemp_conf(workdir1,high_temp)
                     if new_conffile != 'none':
                         poly_conffile = new_conffile
-                    
+                    if poly_topfile.lower() == 'none':
+                        print("WARNING: Topology file is needed for first generation")
+                        print("Please check whether top file is present in ", workdir1)
                 #copy main polyconf file for high temperature and file from high temp sys for sub-high_T
                 cpy_polyfiles_to_tempdir(poly_conffile,poly_topfile,workdir1,\
                                          temp_dir)
