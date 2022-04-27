@@ -63,6 +63,19 @@ def compute_rgscaling(df):
     return pars, cov
 #------------------------------------------------------------------ 
 
+# Return closest MSD at given tref
+def msd_tref(data,reft):
+    if data[len(data[:,0])-2,0] < reft:
+        print('Simulation time less than reference time')
+        print(data[len(data[:,0])-2,0],reft)
+        return -1
+    else:
+        for tind in range(len(data[:,0])):
+            if data[tind,0] < reft and data[tind+1,0] >= reft:
+                sl = (data[tind+1,1]-data[tind,1])/\
+                    (data[tind+1,0]-data[tind,0])
+                return data[tind,1] + sl*(reft-data[tind,0])
+#------------------------------------------------------------------ 
 # Define power law
 def func_powerlaw(x,a,b):
     return a*x**b
