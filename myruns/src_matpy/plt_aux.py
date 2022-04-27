@@ -278,7 +278,7 @@ def set_axes(axhdl,plt,xlabel,ylabel):
 def axlims(yminref,ymin,ymaxref,ymax):
     if ymax > ymaxref: ymaxref = ymax
     if ymin < yminref: yminref = ymin
-    return ymaxref, yminref
+    return yminref, ymaxref
 #------------------------------------------------------------------
 # Submit density job script
 def submit_dens(currdir,workdir,f_name,tmin,tmax,tdt):

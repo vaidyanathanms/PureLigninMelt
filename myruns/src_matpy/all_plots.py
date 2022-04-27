@@ -13,13 +13,15 @@ from scipy.stats import sem
 #------------------------------------------------------------------
 
 #Input data
-pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
+pdi_arr   = [1.0,3.0,3.7,'expts']
 
 #Input flags
-tg_plot = 1 # Plotting Tg
-
+tg_plot    = 1 # Plotting Tg
+msd_plot   = 1 # Plotting MSD
+rg_plot    = 1 # Plotting Rg
+segrg_plot = 1 # Plotting segmental rg
 #------- Plot SV-Temp data for all PDI values together ------------
-while tg_plot:
+while tg_plot: # Stupid Python won't let me break if loops easily
     
     print("Analyzing Tg data")
     anaout_dir = anaout_dir + '/dens_results' # result_outputs
@@ -28,7 +30,8 @@ while tg_plot:
         break
 
     fig2, ax2 = plt.subplots()
-    set_axes(ax2,plt,r'Temperature ($K$)',r'Specific Volume ($cm^{3}/g$)')
+    set_axes(ax2,plt,r'Temperature ($K$)',\
+             r'Specific Volume ($cm^{3}/g$)')
     ymaxref = 0; yminref = 1000
     indx=0
     
@@ -46,15 +49,15 @@ while tg_plot:
         print('Plotting', pdi_val)
         plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
                     ,label=pdileg)
-        ymaxref, yminref = axlims(ymaxref,df['SV_NPT'].max(),\
-                                  yminref,df['SV_NPT'].min()) 
+        yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
+                                  ymaxref,df['SV_NPT'].max()) 
         indx += 1
-        
-    plt.legend(loc='upper left')
-    ax2.set_ylim([0.9*yminref, 1.2*ymaxref])
+
+    plt.legend(loc='upper right')
+    ax2.set_ylim([0.98*yminref, 1.1*ymaxref])
     fig2.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig2.dpi)
     fig2.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
     plt.close(fig2)
-    break # Stupid Python won't let me break if loops easily
+    tg_plot = 0 
 #--- End plotting Tg data --------------------------------------------
 
