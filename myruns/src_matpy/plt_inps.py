@@ -31,9 +31,12 @@ plt.rcParams['figure.dpi'] = 1200
 plt.rc('legend',fontsize=12) # fontsize of the legends
 plt.rcParams.update({'font.size': 16}) # other fonts
 plt.rcParams.update({'figure.autolayout': True})
-plt.rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
-#plt.rcParams['font.family'] = 'Arial' # font type
-plt.rcParams['lines.markersize'] = 10 # marker size
+plt.rcParams['mathtext.fontset'] = 'custom'
+plt.rcParams['mathtext.it'] = 'Arial:italic'
+plt.rcParams['mathtext.rm'] = 'Arial'
+#plt.rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
+plt.rcParams['font.family'] = 'Arial' # font type
+plt.rcParams['lines.markersize'] = 8 # marker size
 plt.rcParams['lines.linewidth'] = 2 # line width
 #plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 #plt.rcParams.update({'font.family': 'Times New Roman'})
