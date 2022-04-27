@@ -26,10 +26,6 @@ anadir_head = 'all_hbs' # change this for different analysis
 start_frac  = 0.3 # starting point for averaging
 #------------------------------------------------------------------
 
-# Global arrays
-denarr = np.arange(temp_min,temp_max,5*temp_dt) #plotting time data
-#------------------------------------------------------------------
-
 # Generate output directories
 anaout_dir = anaout_dir + '/hb_results' # result_outputs
 if not os.path.isdir(anaout_dir):
@@ -108,13 +104,11 @@ for pdi_val in pdi_arr:
 
             case_intra = 0; case_inter = 0
             if not os.path.exists(wdir + '/chainlist.dat'):
-                mon_arr = np.full((nchains),20)
-
-                #fall_out.write('%s\t' %('Nochainlist'))
-                #fall2_out.write('%s\t' %('Nochainlist'))
-                #fall3_out.write('%s\t' %('Nochainlist'))
+                fall_out.write('%s\t' %('Nochainlist'))
+                fall2_out.write('%s\t' %('Nochainlist'))
+                fall3_out.write('%s\t' %('Nochainlist'))
                 print('ERR: chainlist.dat not found')
-                #continue
+                continue
             else:
                 mon_arr = ret_mons(wdir + '/chainlist.dat')
 
@@ -127,7 +121,8 @@ for pdi_val in pdi_arr:
                 if not os.path.exists(fintra) or not \
                    os.path.exists(finter):
                     print("FATAL ERR: Intra/Inter HB files of same chain not found")
-                   
+                    fintra.close(); finter.close()
+                    continue
                 
                 # Open and parse intra HB file
                 with open(fintra) as fin:
