@@ -19,15 +19,19 @@ from compute_props import *
 run_arr   = [1] # run numbers for a given biomass
 temp_arr  = [300,400,500]
 pdi_arr   = [1.0,1.8,3.0]
-mark_arr  = ['o','d','s']
 nchains   = 20
 anadir_head = 'all_rdfs' # change this for different analysis
 #------------------------------------------------------------------
-# Plot RDF (intra-RDF, inter-RDF of C1 carbons)
-print("Analyzing inter/intra RDF")
+
+# Generate output directories
 anaout_dir = anaout_dir + '/rdf_results' # result_outputs
 if not os.path.isdir(anaout_dir):
     os.mkdir(anaout_dir)
+#------------------------------------------------------------------
+
+#----------------Begin Analyzing RDF data -------------------------
+# Plot RDF (intra-RDF, inter-RDF of C1 carbons)
+print("Analyzing inter/intra RDF")
     
 for pdi_val in pdi_arr:
 
