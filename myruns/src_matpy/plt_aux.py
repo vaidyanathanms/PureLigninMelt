@@ -149,7 +149,7 @@ def ret_mons(inpfyle):
         for line in finp:
             line = line.rstrip('/n')
             outstr = line.split()
-            mon_arr.append(outstr[len(outstr)-2])
+            mon_arr.append(int(outstr[len(outstr)-2]))
     return mon_arr
 #------------------------------------------------------------------
 # All Rg plots
