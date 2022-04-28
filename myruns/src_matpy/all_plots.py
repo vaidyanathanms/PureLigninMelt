@@ -58,7 +58,7 @@ while tg_plot: # Stupid Python won't let me break if loops easily
         indx += 1
 
     plt.legend(loc='upper right')
-    ax.set_ylim([0.98*yminref, 1.1*ymaxref])
+    ax.set_ylim([0.95*yminref, 1.2*ymaxref])
     fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
     fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
     plt.close(fig)
@@ -187,14 +187,21 @@ while rg_plot:
 
 #--------Plot b/nu-Temp data for all PDI values together------------------
 while segrg_plot:
+
     print("Plotting Rg Scaling Coefficients")
+    anaout_dir = anaout_dir + '/segrg_results' # result_outputs
+    if not os.path.isdir(anaout_dir):
+        print("ERROR: ", + anaout_dir + " not found")
+        break
+
     fig, ax = plt.subplots()
     set_axes(ax,plt,r'Temperature ($K$)',r'$\nu$') 
-    ymaxbref = 0; yminbref = 1000; indx=0
+    ymaxnuref = 0; yminnuref = 1000
     
     fig2, ax2 = plt.subplots()
     set_axes(ax2,plt,r'Temperature ($K$)',r'$C_{l}$ ($\AA$)') 
-    ymaxnuref = 0; yminnuref = 1000
+    ymaxbref = 0; yminbref = 1000; indx=0
+
     
     for pdi_val in pdi_arr:
         if pdi_val == 'expts':
@@ -217,18 +224,55 @@ while segrg_plot:
                                   ymaxbref,y.max())
 
     ax.legend(loc='upper right')
-    ax.set_ylim([0.98*yminnuref, 1.1*ymaxnuref])
+    ax.set_ylim([0.95*yminnuref, 1.2*ymaxnuref])
     fig.savefig(figout_dir + '/'+'nu_allpdi.png',dpi=fig.dpi)
     fig.savefig(figout_dir + '/'+'nu_allpdi.eps',format='eps')
     plt.close(fig)
 
     ax2.legend(loc='upper right')
-    ax2.set_ylim([0.98*yminbref, 1.1*ymaxbref])
+    ax2.set_ylim([0.95*yminbref, 1.2*ymaxbref])
     fig2.savefig(figout_dir + '/'+'perlen_allpdi.png',dpi=fig2.dpi)
     fig2.savefig(figout_dir + '/'+'perlen_allpdi.eps',format='eps')
     plt.close(fig2)
     segrg_plot = 0
 #----------------------End scaling plots----------------------------------
+
+#-------Plot Kappa-Temp data for all PDI values together------------------
+while shape_plot:
+
+    print("Plotting shape data")
+    anaout_dir = anaout_dir + '/shape_results' # result_outputs
+    if not os.path.isdir(anaout_dir):
+        print("ERROR: ", + anaout_dir + " not found")
+        break
+
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'Temperature ($K$)',r'$\langle \kappa \rangle$')
+    ymaxref = 0; yminref = 1000; indx=0
+    
+    for pdi_val in pdi_arr:
+        if pdi_val == 'expts':
+            pdileg = 'PDI: Experimental Distribution'
+        else:
+            pdileg = 'PDI: ' + str(pdi_val)
+        fplot = '/shapefacdata_'+str(pdi_val)+'.dat' 
+        if not os.path.exists(anaout_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+            continue
+
+        df=pd.read_table(anaout_dir + '/' + fplot)
+        print('Plotting', pdi_val)
+        ax.scatter(x=df['Temp'],y=df['<\kappa>'],label=pdileg)
+        yminref, ymabref = axlims(yminref,y.min(),\
+                                  ymaxref,y.max())
+
+    ax.legend(loc='upper right')
+    ax.set_ylim([0.95*yminnuref, 1.2*ymaxnuref])
+    fig.savefig(figout_dir + '/'+'kap_allpdi.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'kap_allpdi.eps',format='eps')
+    plt.close(fig)
+    shape_plot = 0
+#----------------------End shape plots----------------------------------
 
 #--------Plot HB-Temp data for all PDI values together--------------------
 while hb_plot:
@@ -277,19 +321,19 @@ while hb_plot:
 
 
 
-    ax.set_ylim([0.9*yminintra, 1.2*ymaxintra])
+    ax.set_ylim([0.95*yminintra, 1.2*ymaxintra])
     ax.legend(loc='upper right')
     fig.savefig(figout_dir + '/'+'hbintra_allpdi.png',dpi=fig.dpi)
     fig.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
     plt.close(fig)
 
-    ax2.set_ylim([0.9*ymininter, 1.2*ymaxinter])
+    ax2.set_ylim([0.95*ymininter, 1.2*ymaxinter])
     ax2.legend(loc='upper right')
     fig2.savefig(figout_dir + '/'+'hbinter_allpdi.png',dpi=fig2.dpi)
     fig2.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
     plt.close(fig2)
 
-    ax3.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
+    ax3.set_ylim([0.95*ymintotal, 1.2*ymaxtotal])
     ax3.legend(loc='upper right')
     fig3.savefig(figout_dir + '/'+'hbtot_allpdi.png',dpi=fig3.dpi)
     fig3.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
