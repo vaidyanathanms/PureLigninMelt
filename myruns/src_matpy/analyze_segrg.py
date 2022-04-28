@@ -117,36 +117,5 @@ for pdi_val in pdi_arr:
     # Plot b-Temp data and nu-temp data
     df=pd.read_table(anaout_dir +'/Rgscaling_'+str(pdi_val)+'.dat')
     plot_rgscaling(df,figout_dir,pdi_val) #end of PDI loop
-
-#------- Plot b/nu-Temp data for all PDI values together--------------------
-print("Plotting all Scaling Coefficients as a function of PDI..")
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'$\nu$') 
-
-fig3, ax3 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'$C_{l} (nm)$') 
-
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/Rgscaling_'+str(pdi_val)+'.dat'
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['nu'],label = pdileg)
-    ax3.scatter(x=df['Temp'],y=df['b'],label = pdileg)
-    
-fig2.savefig(figout_dir + '/'+'nu_allpdi.png',dpi=fig2.dpi)
-fig2.savefig(figout_dir + '/'+'nu_allpdi.eps',format='eps')
-plt.close(fig2)
-
-fig3.savefig(figout_dir + '/'+'perlen_allpdi.png',dpi=fig3.dpi)
-fig3.savefig(figout_dir + '/'+'perlen_allpdi.eps',format='eps')
-plt.close(fig3)
-#----------------------End of Rg2 Analysis------------------------------
+#----------------------End of Segmental Rg Analysis-------------------
 

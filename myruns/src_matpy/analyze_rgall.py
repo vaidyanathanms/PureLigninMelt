@@ -193,28 +193,5 @@ for pdi_val in pdi_arr:
 
     # Plot Rg-temperature data for each PDI
     df=pd.read_table(anaout_dir +'/Rgdata_'+str(pdi_val)+'.dat')
-    plot_allrg(df,figout_dir,pdi_val) #end of PDI loop
-    
-#------- Plot Rg2-Temp data for all PDI values together--------------------
-print("Plotting all Rg data as a function of PDI..")
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'\langle R_{g}^{2} \rangle ($nm^{2}$)')
-
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/Rgdata_'+str(pdi_val)+'.dat'
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['<Rg^2>'],label=pdileg)
-    
-fig2.savefig(figout_dir + '/'+'rg2_allpdi.png',dpi=fig2.dpi)
-fig2.savefig(figout_dir + '/'+'rg2_allpdi.eps',format='eps')
-plt.close(fig2)
+    plot_allrg(df,figout_dir,pdi_val) #end of PDI loop   
 #----------------------End of Rg2 Analysis------------------------------
