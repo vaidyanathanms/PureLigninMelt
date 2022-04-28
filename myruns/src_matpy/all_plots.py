@@ -129,14 +129,14 @@ while msd_plot:
             #Plotting data
             print('Plotting', pdi_val, tval)
             plt.scatter(av_monarr,100*av_msdarr/av_cntarr,\
-                        marker=mrk_arr[indx],label=pdileg) # in Ang
+                        marker=mrk_arr[indx],label=pdileg)
             yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
                                       ymaxref,(av_msdarr/av_cntarr).max()) 
             indx += 1
         
 #        print(yminref,ymaxref)
         plt.legend(loc='upper right')
-        ax.set_ylim([0.9*yminref, 1.2*ymaxref])
+        ax.set_ylim([95*yminref, 120*ymaxref])
         ax.set_yscale('log'); ax.set_xscale('log')
         fig.savefig(figout_dir + '/'+'MSDdist_T_'+str(tval)+ \
                     '.png',dpi=fig.dpi)
