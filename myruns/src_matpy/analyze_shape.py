@@ -190,28 +190,5 @@ for pdi_val in pdi_arr:
     # Plot Shape-temperature data for each PDI
     df=pd.read_table(sf_fyl)
     plot_allshape(df,figout_dir,pdi_val) #end of PDI loop
-
-#------- Plot Kappa-Temp data for all PDI values together--------------------
-print("Plotting all shape data as a function of PDI..")
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'\langle \kappa \rangle')
-
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/shapefacdata_'+str(pdi_val)+'.dat' 
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['<\kappa>'],label=pdileg)
-    
-fig2.savefig(figout_dir + '/'+'kap_allpdi.png',dpi=fig2.dpi)
-fig2.savefig(figout_dir + '/'+'kap_allpdi.eps',format='eps')
-plt.close(fig2)
 #----------------------End of kappa Analysis------------------------------
 
