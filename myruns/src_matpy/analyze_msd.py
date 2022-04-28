@@ -50,8 +50,8 @@ for pdi_val in pdi_arr:
 
         # Output for each case - different from HBonds since this is
         # at a specific temperatture
-        fall_out = open(anaout_dir +'/allmsddata_T_'+str(tval)+\
-                        str(pdi_val)+'.dat','w')
+        fall_out = open(anaout_dir +'/allmsddata_T_'+str(tval)+'_pdi_'\
+                        + str(pdi_val)+'.dat','w')
         fall_out.write('%s\t%g\t%s\n' %('MSD @t = ', tref, ' ps'))
         fall_out.write('%s\t%s\t%s\t%s\n' %('CaseNum','ChID','NMons','MSD'))
 
@@ -59,7 +59,7 @@ for pdi_val in pdi_arr:
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
                 '/T_' + str(tval) + '/' + anadir_head
             if not os.path.isdir(wdir):
-                fall_out.write('%s\t' %('N/A'))
+                fall_out.write('%s\t%s\t%s\n' %('N/A','N/A','N/A','N/A'))
                 print("ERR: " + wdir + " does not exist")
                 continue
             
@@ -68,7 +68,7 @@ for pdi_val in pdi_arr:
             # Check file(s)
             msd_list_of_files = glob.glob(wdir + '/msd_nptmain_*.xvg')
             if msd_list_of_files == []:
-                fall_out.write('%s\t' %('N/A'))
+                fall_out.write('%s\t%s\n' %('N/A','N/A'))
                 print("MSD files do not exist for ", tval)
                 continue
 
@@ -110,10 +110,9 @@ for pdi_val in pdi_arr:
                     data  = np.loadtxt(lines) #end with open(fmsd)
                     
                 msd = cprop.msd_tref(data,tref)                   
-                case_msd += msd
-                fcase_msd.write('%g\t%g\t%g\n' %(chid,mon_arr[chid],case_msd))
-                fall_out.write('%g\t%g\t%g\t%g\n' %(casenum,chid,\
-                                                        mon_arr[chid],case_msd))
+                fcase_msd.write('%g\t%g\t%g\n' %(chid,mon_arr[chid],msd))
+                fall_out.write('%g\t%g\t%g\t%g\n' %(run_arr[casenum],chid,\
+                                                    mon_arr[chid],msd))
                  
             # end for fyle in inter/msd chain loops
             fcase_msd.close() # close writing for each case 
@@ -130,57 +129,4 @@ for pdi_val in pdi_arr:
     # Do NOT continue if no PDI-temps are found
     if pdiflag == -1: 
         continue
-#------- Plot HB-Temp data for all PDI values together--------------------
-print("Plotting all HB data as a function of PDI..")
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'#HB$_{\rm{Msd}}$')
-
-fig3, ax3 = plt.subplots()
-set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
-
-fig4, ax4 = plt.subplots()
-set_axes(ax4,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
-
-ymaxmsd = 0; ymaxinter=0; ymaxtotal=0
-yminmsd = 1000; ymininter=1000; ymintotal=1000
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/HBdata_'+str(pdi_val)+'.dat'
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['Msd_HB'],label=pdileg)
-    ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
-    ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
-    ymaxmsd, yminmsd = axlims(ymaxmsd,df['Msd_HB'].max(),\
-                                  yminmsd,df['Msd_HB'].min()) 
-    ymaxinter, ymininter = axlims(ymaxinter,df['Inter_HB'].max(),\
-                                  ymininter,df['Inter_HB'].min()) 
-    ymaxtotal, ymintotal = axlims(ymaxtotal,df['Tot_HB'].max(),\
-                                  ymintotal,df['Tot_HB'].min()) 
-
-
-fig2.savefig(figout_dir + '/'+'hbmsd_allpdi.png')
-fig2.savefig(figout_dir + '/'+'hbmsd_allpdi.eps',format='eps')
-plt.legend(loc='upper right')
-ax2.set_ylim([0.9*yminmsd, 1.2*ymaxmsd])
-plt.close(fig2)
-
-fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
-fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
-ax2.set_ylim([0.9*ymininter, 1.2*ymaxinter])
-plt.legend(loc='upper right')
-plt.close(fig3)
-
-fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png')
-fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
-ax4.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
-plt.legend(loc='upper right')
-plt.close(fig4)
-#----------------------End of Hbond Analysis------------------------------
+#------- End MSD Analysi-------------------------------------------------

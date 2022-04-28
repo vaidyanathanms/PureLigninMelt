@@ -190,58 +190,5 @@ for pdi_val in pdi_arr:
     # Plot HBintra/inter-temperature data for each PDI
     df=pd.read_table(anaout_dir +'/HBdata_'+str(pdi_val)+'.dat')
     plot_allhb(df,figout_dir,pdi_val) #end of PDI loop
-    
-#------- Plot HB-Temp data for all PDI values together--------------------
-print("Plotting all HB data as a function of PDI..")
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'#HB$_{\rm{Intra}}$')
+#----------------------End of Hbond Analysis------------------------------    
 
-fig3, ax3 = plt.subplots()
-set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
-
-fig4, ax4 = plt.subplots()
-set_axes(ax4,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
-
-ymaxintra = 0; ymaxinter=0; ymaxtotal=0
-yminintra = 1000; ymininter=1000; ymintotal=1000
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/HBdata_'+str(pdi_val)+'.dat'
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    ax2.scatter(x=df['Temp'],y=df['Intra_HB'],label=pdileg)
-    ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
-    ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
-    ymaxintra, yminintra = axlims(ymaxintra,df['Intra_HB'].max(),\
-                                  yminintra,df['Intra_HB'].min()) 
-    ymaxinter, ymininter = axlims(ymaxinter,df['Inter_HB'].max(),\
-                                  ymininter,df['Inter_HB'].min()) 
-    ymaxtotal, ymintotal = axlims(ymaxtotal,df['Tot_HB'].max(),\
-                                  ymintotal,df['Tot_HB'].min()) 
-
-
-fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png')
-fig2.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
-plt.legend(loc='upper right')
-ax2.set_ylim([0.9*yminintra, 1.2*ymaxintra])
-plt.close(fig2)
-
-fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
-fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
-ax2.set_ylim([0.9*ymininter, 1.2*ymaxinter])
-plt.legend(loc='upper right')
-plt.close(fig3)
-
-fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png')
-fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
-ax4.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
-plt.legend(loc='upper right')
-plt.close(fig4)
-#----------------------End of Hbond Analysis------------------------------

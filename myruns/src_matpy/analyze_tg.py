@@ -17,7 +17,7 @@ from scipy.stats import sem
 
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
-temp_min  = 300 # Minimum temperature
+temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
@@ -159,32 +159,4 @@ for pdi_val in pdi_arr:
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.eps',format='eps')
     plt.close(figa) # End of PDI loop
     
-#------- Plot SV-Temp data for all PDI values together-----------------
-fig2, ax2 = plt.subplots()
-set_axes(ax2,plt,r'Temperature ($K$)',r'Specific Volume ($cm^{3}/g$)')
-ymaxref = 0; yminref = 1000
-indx=0
-for pdi_val in pdi_arr:
-    if pdi_val == 'expts':
-        pdileg = 'PDI: Experimental Distribution'
-    else:
-        pdileg = 'PDI: ' + str(pdi_val)
-    fname = '/tgdata_'+str(pdi_val)+'.dat'
-    if not os.path.exists(anaout_dir + '/' + fname):
-        print('ERR: '+fname+' does not exist in ' + anaout_dir)
-        continue
-    
-    df=pd.read_table(anaout_dir + '/' + fname)
-    print('Plotting', pdi_val)
-    plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]
-                \,label=pdileg)
-    ymaxref, yminref = axlims(ymaxref,df['SV_NPT'].max(),\
-                              yminref,df['SV_NPT'].min()) 
-    indx += 1
-    
-plt.legend(loc='upper left')
-ax2.set_ylim([0.9*yminref, 1.2*ymaxref])
-fig2.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig2.dpi)
-fig2.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
-plt.close(fig2)
-#------------------------------------------------------------------
+#------- End Tg analysis -----------------------------------------------
