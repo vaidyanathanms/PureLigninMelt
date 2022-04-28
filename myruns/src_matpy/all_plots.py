@@ -25,7 +25,7 @@ segrg_plot = 0 # Plotting segmental rg
 hb_plot    = 0 # Plotting hydrogen bond data
 shape_plot = 0 # Plotting shape factor
 
-#------- Plot SV-Temp data for all PDI values together ------------
+#--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
     
     print("Plotting Tg data")
@@ -65,7 +65,7 @@ while tg_plot: # Stupid Python won't let me break if loops easily
     tg_plot = 0 
 #--- End plotting Tg data -----------------------------------------
 
-#------- Plot MSD data---------------------------------------------
+#--------Plot MSD data for all PDI together------------------------
 while msd_plot:
 
     print("Plotting MSD data")
@@ -147,7 +147,7 @@ while msd_plot:
     msd_plot = 0
 #----------------------End MSD plots--------------------------------------
 
-#------- Plot Rg2-Temp data for all PDI values together-------------------
+#--------Plot Rg2-Temp data for all PDI values together-------------------
 while rg_plot:
     print("Plotting Rg data")
     anaout_dir = anaout_dir + '/rg_results' # result_outputs
@@ -185,8 +185,7 @@ while rg_plot:
     rg_plot = 0
 #----------------------End Rg2 plots--------------------------------------
 
-#------- Plot b/nu-Temp data for all PDI values together------------------
-
+#--------Plot b/nu-Temp data for all PDI values together------------------
 while segrg_plot:
     print("Plotting Rg Scaling Coefficients")
     fig, ax = plt.subplots()
@@ -231,7 +230,7 @@ while segrg_plot:
     segrg_plot = 0
 #----------------------End scaling plots----------------------------------
 
-#------- Plot HB-Temp data for all PDI values together--------------------
+#--------Plot HB-Temp data for all PDI values together--------------------
 while hb_plot:
 
     print("Plotting all HB data")
