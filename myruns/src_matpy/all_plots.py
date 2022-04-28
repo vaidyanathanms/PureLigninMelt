@@ -1,4 +1,5 @@
-# Just plotting all data to avoid redoing the calculations
+# Plot all data
+# Version: Apr-28-2022
 # Import modules
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +23,7 @@ msd_plot   = 1 # Plotting MSD
 rg_plot    = 0 # Plotting Rg
 segrg_plot = 0 # Plotting segmental rg
 hb_plot    = 0 # Plotting hydrogen bond data
+shape_plot = 0 # Plotting shape factor
 
 #------- Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
@@ -46,9 +48,9 @@ while tg_plot: # Stupid Python won't let me break if loops easily
         if not os.path.exists(anaout_dir + '/' + fplot):
             print('ERR: '+fplot+' does not exist in ' + anaout_dir)
             continue
-
-        df=pd.read_table(anaout_dir + '/' + fplot)
+        
         print('Plotting', pdi_val)
+        df=pd.read_table(anaout_dir + '/' + fplot)
         plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
                     ,label=pdileg)
         yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
@@ -134,7 +136,6 @@ while msd_plot:
                                       ymaxref,(av_msdarr/av_cntarr).max()) 
             indx += 1
         
-#        print(yminref,ymaxref)
         plt.legend(loc='upper right')
         ax.set_ylim([95*yminref, 120*ymaxref])
         ax.set_yscale('log'); ax.set_xscale('log')
@@ -146,6 +147,90 @@ while msd_plot:
     msd_plot = 0
 #----------------------End MSD plots--------------------------------------
 
+#------- Plot Rg2-Temp data for all PDI values together-------------------
+while rg_plot:
+    print("Plotting Rg data")
+    anaout_dir = anaout_dir + '/rg_results' # result_outputs
+    if not os.path.isdir(anaout_dir):
+        print("ERROR: ", + anaout_dir + " not found")
+        break
+
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'Temperature ($K$)',\
+             r'$\langle R_{g}^{2} \rangle$ ($nm^{2}$)')
+    ymaxref = 0; yminref = 1000; indx=0
+        
+    for pdi_val in pdi_arr:
+        if pdi_val == 'expts':
+            pdileg = 'PDI: Experimental Distribution'
+        else:
+            pdileg = 'PDI: ' + str(pdi_val)
+        fplot = '/Rgdata_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+            continue
+
+        print('Plotting', pdi_val)
+        df=pd.read_table(anaout_dir + '/' + fplot)
+        plt.scatter(x=df['Temp'],y=df['<Rg^2>'],marker=mrk_arr[indx],\
+                    label=pdileg); indx+=1
+        yminref, ymaxref = axlims(yminref,y.min(),\
+                                  ymaxref,y.max())
+    
+    plt.legend(loc='upper right')
+    ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+    fig.savefig(figout_dir + '/'+'rg2_allpdi.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'rg2_allpdi.eps',format='eps')
+    plt.close(fig)
+    rg_plot = 0
+#----------------------End Rg2 plots--------------------------------------
+
+#------- Plot b/nu-Temp data for all PDI values together------------------
+
+while segrg_plot:
+    print("Plotting Rg Scaling Coefficients")
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'Temperature ($K$)',r'$\nu$') 
+    ymaxbref = 0; yminbref = 1000; indx=0
+    
+    fig2, ax2 = plt.subplots()
+    set_axes(ax2,plt,r'Temperature ($K$)',r'$C_{l}$ ($\AA$)') 
+    ymaxnuref = 0; yminnuref = 1000
+    
+    for pdi_val in pdi_arr:
+        if pdi_val == 'expts':
+            pdileg = 'PDI: Experimental Distribution'
+        else:
+            pdileg = 'PDI: ' + str(pdi_val)
+        fplot = '/Rgscaling_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+            continue
+
+        print('Plotting', pdi_val)
+        df=pd.read_table(anaout_dir + '/' + fplot)
+        ax.scatter(x=df['Temp'],y=df['nu'],marker=mrk_arr[indx]\
+                   ,label = pdileg); indx += 1
+        yminnuref, ymaxnuref = axlims(yminnuref,y.min(),\
+                                  ymaxnuref,y.max())
+        ax2.scatter(x=df['Temp'],y=df['b'],label = pdileg)
+        yminbref, ymaxbref = axlims(yminbref,y.min(),\
+                                  ymaxbref,y.max())
+
+    ax.legend(loc='upper right')
+    ax.set_ylim([0.98*yminnuref, 1.1*ymaxnuref])
+    fig.savefig(figout_dir + '/'+'nu_allpdi.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'nu_allpdi.eps',format='eps')
+    plt.close(fig)
+
+    ax2.legend(loc='upper right')
+    ax2.set_ylim([0.98*yminbref, 1.1*ymaxbref])
+    fig2.savefig(figout_dir + '/'+'perlen_allpdi.png',dpi=fig2.dpi)
+    fig2.savefig(figout_dir + '/'+'perlen_allpdi.eps',format='eps')
+    plt.close(fig2)
+    segrg_plot = 0
+#----------------------End scaling plots----------------------------------
+
 #------- Plot HB-Temp data for all PDI values together--------------------
 while hb_plot:
 
@@ -155,32 +240,35 @@ while hb_plot:
         print("ERROR: ", + anaout_dir + " not found")
         break
     
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'Temperature ($K$)',r'#HB$_{\rm{Intra}}$')
+
     fig2, ax2 = plt.subplots()
-    set_axes(ax2,plt,r'Temperature ($K$)',r'#HB$_{\rm{Intra}}$')
+    set_axes(ax2,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
 
     fig3, ax3 = plt.subplots()
-    set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Inter}}$')
-
-    fig4, ax4 = plt.subplots()
-    set_axes(ax4,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
+    set_axes(ax3,plt,r'Temperature ($K$)',r'#HB$_{\rm{Total}}$')
 
     ymaxintra = 0; ymaxinter=0; ymaxtotal=0
-    yminintra = 1000; ymininter=1000; ymintotal=1000
+    yminintra = 1000; ymininter=1000; ymintotal=1000; indx = 0
     for pdi_val in pdi_arr:
         if pdi_val == 'expts':
             pdileg = 'PDI: Experimental Distribution'
         else:
             pdileg = 'PDI: ' + str(pdi_val)
-        fname = '/HBdata_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout_dir + '/' + fname):
-            print('ERR: '+fname+' does not exist in ' + anaout_dir)
+        fplot = '/HBdata_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
             continue
 
-        df=pd.read_table(anaout_dir + '/' + fname)
         print('Plotting', pdi_val)
-        ax2.scatter(x=df['Temp'],y=df['Intra_HB'],label=pdileg)
-        ax3.scatter(x=df['Temp'],y=df['Inter_HB'],label=pdileg)
-        ax4.scatter(x=df['Temp'],y=df['Tot_HB'],label=pdileg)
+        df=pd.read_table(anaout_dir + '/' + fplot)
+        ax.scatter(x=df['Temp'],y=df['Intra_HB'],marker=mrk_arr[indx],\
+                   label=pdileg)
+        ax2.scatter(x=df['Temp'],y=df['Inter_HB'],marker=mrk_arr[indx],\
+                    label=pdileg)
+        ax3.scatter(x=df['Temp'],y=df['Tot_HB'],marker=mrk_arr[indx],\
+                    label=pdileg); indx += 1
         ymaxintra, yminintra = axlims(ymaxintra,df['Intra_HB'].max(),\
                                       yminintra,df['Intra_HB'].min()) 
         ymaxinter, ymininter = axlims(ymaxinter,df['Inter_HB'].max(),\
@@ -189,22 +277,23 @@ while hb_plot:
                                       ymintotal,df['Tot_HB'].min()) 
 
 
-    plt.legend(loc='upper right')
-    ax2.set_ylim([0.9*yminintra, 1.2*ymaxintra])
-    fig2.savefig(figout_dir + '/'+'hbintra_allpdi.png')
-    fig2.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
+
+    ax.set_ylim([0.9*yminintra, 1.2*ymaxintra])
+    ax.legend(loc='upper right')
+    fig.savefig(figout_dir + '/'+'hbintra_allpdi.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'hbintra_allpdi.eps',format='eps')
+    plt.close(fig)
+
+    ax2.set_ylim([0.9*ymininter, 1.2*ymaxinter])
+    ax2.legend(loc='upper right')
+    fig2.savefig(figout_dir + '/'+'hbinter_allpdi.png',dpi=fig2.dpi)
+    fig2.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
     plt.close(fig2)
 
-    ax3.set_ylim([0.9*ymininter, 1.2*ymaxinter])
-    plt.legend(loc='upper right')
-    fig3.savefig(figout_dir + '/'+'hbinter_allpdi.png')
-    fig3.savefig(figout_dir + '/'+'hbinter_allpdi.eps',format='eps')
+    ax3.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
+    ax3.legend(loc='upper right')
+    fig3.savefig(figout_dir + '/'+'hbtot_allpdi.png',dpi=fig3.dpi)
+    fig3.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
     plt.close(fig3)
-
-    ax4.set_ylim([0.9*ymintotal, 1.2*ymaxtotal])
-    plt.legend(loc='upper right')
-    fig4.savefig(figout_dir + '/'+'hbtot_allpdi.png')
-    fig4.savefig(figout_dir + '/'+'hbtot_allpdi.eps',format='eps')
-    plt.close(fig4)
     hb_plot = 0
 #----------------------End Hbond plots-------------------------------------
