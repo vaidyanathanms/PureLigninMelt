@@ -31,7 +31,7 @@ if not os.path.isdir(anaout_dir):
     os.mkdir(anaout_dir)
 #------------------------------------------------------------------
 
-#----------------Begin Analyzing HB data -----------------------------
+#----------------Begin Analyzing MSD data--------------------------
 print("Analyzing MSD data ...")
 for pdi_val in pdi_arr:
 
