@@ -41,12 +41,10 @@ for pdi_val in pdi_arr:
         print("ERR: " +  simout_dir + " does not exist")       
         continue
     
-    pdiflag = -1                # to account for empty directories
-    
     # Temperature loops and averaging
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
-        pdiflag = 1;  msdtime = 0; ncases_pertemp = 0
+        pdiflag = 1;  msdtime = 0
 
         # Output at a given temperature for all cases
         fall_out = open(anaout_dir +'/allmsddata_T_'+str(tval)+'_pdi_'\
@@ -58,74 +56,64 @@ for pdi_val in pdi_arr:
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
                 '/T_' + str(tval) + '/' + anadir_head
             if not os.path.isdir(wdir):
-                fall_out.write('%s\t%s\t%s\n' %('N/A','N/A','N/A','N/A'))
+                fall_out.write('%g\t%s\t%s\t%s\n' %(casenum,'N/A','N/A','N/A'))
                 print("ERR: " + wdir + " does not exist")
                 continue
             
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
             
-            # Check file(s)
-            msd_list_of_files = glob.glob(wdir + '/msd_nptmain_*.xvg')
-            if msd_list_of_files == []:
-                fall_out.write('%s\t%s\n' %('N/A','N/A'))
-                print("MSD files do not exist for ", tval)
-                continue
-
-            if len(msd_list_of_files) != nchains:
-                fall_out.write('%s\t' %('DiffNchains'))
-                print('ERR: Mismatch in number of analysis file and input',\
-                      nchains, len(msd_list_of_files))
-                continue
-
             fcase_msd = open(anaout_dir + '/msd_pdi_' + str(pdi_val) + '_casenum_'\
                             + str(run_arr[casenum])+ '_T_' + str(tval)
                             + '.dat','w')
             fcase_msd.write('%s\t%g\t%s\n' %('MSD @t = ', tref, ' ps'))
             fcase_msd.write('%s\t%s\t%s\n' %('ChainID','Nmons','MSD'))
 
-            case_msd = 0
+            # Check file(s)
+            msd_list_of_files = glob.glob(wdir + '/msd_nptmain_*.xvg')
+            if msd_list_of_files == []:
+                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fcase_msd.write('%s\n' %('No chains found'))
+                fcase_msd.close()
+                print("MSD files do not exist for ", tval)
+                continue
+
+            if len(msd_list_of_files) != nchains:
+                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fcase_msd.write('%s\n' %('DiffNchains'))
+                fcase_msd.close()
+                print('ERR: Mismatch in number of analysis file and input',\
+                      nchains, len(msd_list_of_files))
+                continue
+
             if not os.path.exists(wdir + '/chainlist.dat'):
-                fall_out.write('%s\t' %('Nochainlist'))
+                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fcase_msd.write('%s\n' %('Nochainlist'))
+                fcase_msd.close()
                 print('ERR: chainlist.dat not found')
                 continue
-            else:
-                mon_arr = ret_mons(wdir + '/chainlist.dat')
+
+            mon_arr = ret_mons(wdir + '/chainlist.dat')
 
             for fyle in msd_list_of_files: # msd chain loop
                 chid = ret_chid(fyle) 
-                fmsd = wdir + '/msd_nptmain_'+str(chid)+ '.xvg' #inp file
-
-                if not os.path.exists(fmsd):
-                    print("FATAL ERR: MSD files of chain " + str(chid)\
-                          + " not found")
-                    fmsd.close()
-                    continue
-            
                 # Open and parse msd file
-                with open(fmsd) as fin:
+                with open(fyle) as fin:
                     lines = (line.lstrip() for line in fin \
                              if not line.lstrip().startswith('#') and \
                              not line.lstrip().startswith('@'))
-                    data  = np.loadtxt(lines) #end with open(fmsd)
+                    data  = np.loadtxt(lines) #end with open(fyle)
                     
                 msd = cprop.msd_tref(data,tref)                   
                 fcase_msd.write('%g\t%g\t%g\n' %(chid,mon_arr[chid],msd))
                 fall_out.write('%g\t%g\t%g\t%g\n' %(run_arr[casenum],chid,\
                                                     mon_arr[chid],msd))
                  
-            # end for fyle in inter/msd chain loops
-            fcase_msd.close() # close writing for each case 
-
+            # end for fyle in msd_list_of_files
+            fcase_msd.close() # close writing for each case
+            
+        #end casenum in range(len(run_arr))
+        fall_out.close()
         
-        # Do NOT continue if zero cases are found
-        if ncases_pertemp == 0:
-            fall_out.close()
-            continue
-
-    # Close temp files
-    fall_out.close()
-
-    # Do NOT continue if no PDI-temps are found
-    if pdiflag == -1: 
-        continue
+    #end tval in range(temp_min,temp_max,temp_dt)
+#end pdival loop
 #------- End MSD Analysi-------------------------------------------------
