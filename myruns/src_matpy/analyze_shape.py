@@ -17,8 +17,8 @@ from plt_inps import *
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
-temp_max  = 301 # Maximum temperature
-temp_dt   = 10  # Temperature dt
+temp_max  = 501 # Maximum temperature
+temp_dt   = 50  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
@@ -57,11 +57,10 @@ for pdi_val in pdi_arr:
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
         sf_all = []; pdiflag = 1
-        fall_out.write('%g\t' %(tval))
 
         # Output at a given temperature for all cases
         fall_out = open(anaout_dir + '/shape_T_' + str(tval)+ '_pdi_'\
-                        str(pdi_val) + '.dat','w')
+                        + str(pdi_val) + '.dat','w')
         fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
                        %('CaseNum','ChainID','Nmons','<lam_1>',\
                          '<lam_2>','<lam_3>','\kappa'))
@@ -88,7 +87,8 @@ for pdi_val in pdi_arr:
             list_of_files = glob.glob(wdir + '/eig_nptmain_*.xvg')
             if list_of_files == []:
                 fall_out.write('%g\t%s\t%s\t%s\t%s\t%s\t%s\n'
-                               %(casenum,'N/A','N/A','N/A','N/A','N/A','N/A'))
+                               %(run_arr[casenum],'N/A','N/A','N/A',\
+                                 'N/A','N/A','N/A'))
                 fcase_sf.write('%s\n' %('No eigenvalue files found'))
                 fcase_sf.close()
                 print("Eigenvalue files do not exist for ", tval)
@@ -96,7 +96,8 @@ for pdi_val in pdi_arr:
             
             if len(list_of_files) != nchains:
                 fall_out.write('%g\t%s\t%s\t%s\t%s\t%s\t%s\n'
-                               %(casenum,'N/A','N/A','N/A','N/A','N/A','N/A'))
+                               %(run_arr[casenum],'N/A','N/A','N/A',\
+                                 'N/A','N/A','N/A'))
                 fcase_sf.write('%s\n' %('Mismatch in number of chains'))
                 fcase_sf.close()
                 print('ERR: Mismatch in number of chains in file and inp',\
@@ -106,7 +107,8 @@ for pdi_val in pdi_arr:
 
             if not os.path.exists(wdir + '/chainlist.dat'):
                 fall_out.write('%g\t%s\t%s\t%s\t%s\t%s\t%s\n'
-                               %(casenum,'N/A','N/A','N/A','N/A','N/A','N/A'))
+                               %(run_arr[casenum],'N/A','N/A','N/A',\
+                                 'N/A','N/A','N/A'))
                 fcase_sf.write('%s\n' %('chainlist.dat not found'))
                 fcase_sf.close()
                 print('ERR: chainlist.dat not found')
@@ -132,7 +134,7 @@ for pdi_val in pdi_arr:
                 tr   = (lam1+lam2+lam3)/3
                 kappa = 1.5*((lam1-tr)**2 + (lam2-tr)**2 + (lam3-tr)**2)
                 kappa /= (lam1+lam2+lam3)**2
-                fcase_msd.write('%g\t%g\t%g\t%g\t%g\t%g\n' \
+                fcase_sf.write('%g\t%g\t%g\t%g\t%g\t%g\n' \
                                %(chid,int(mon_arr[chid]),\
                                  lam1,lam2,lam3,kappa))
                 fall_out.write('%g\t%g\t%g\t%g\t%g\t%g\t%g\n' \
@@ -140,7 +142,7 @@ for pdi_val in pdi_arr:
                                  lam1,lam2,lam3,kappa))
 
             #end for fyle in list_of_files                 
-            fcase_msd.close()
+            fcase_sf.close()
             
         # end for casenum in len(range(run_arr))
         fall_out.close()
