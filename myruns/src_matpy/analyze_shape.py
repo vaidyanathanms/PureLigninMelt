@@ -62,16 +62,12 @@ for pdi_val in pdi_arr:
         fall_out = open(anaout_dir + '/shape_T_' + str(tval)+ '_pdi_'\
                         + str(pdi_val) + '.dat','w')
         fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-                       %('CaseNum','ChainID','Nmons','<lam_1>',\
-                         '<lam_2>','<lam_3>','\kappa'))
+                       %('CaseNum','ChainID','NMons','<lam_1>',\
+                         '<lam_2>','<lam_3>','kappa'))
         
         for casenum in range(len(run_arr)): # loop in runarr
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
                 '/T_' + str(tval) + '/' + anadir_head
-            if not os.path.isdir(wdir):
-                fall_out.write('%s\t' %('N/A'))
-                print("ERR: " + wdir + " does not exist")
-                continue
 
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
 
@@ -80,10 +76,19 @@ for pdi_val in pdi_arr:
                             str(run_arr[casenum]) + '_T_' + str(tval) \
                             + '.dat','w')
             fcase_sf.write('%s\t%s\t%s\t%s\t%s\t%s\n' \
-                           %('ChainID','Nmons','<lam_1>','<lam_2>',\
-                             '<lam_3>','\kappa'))
+                           %('ChainID','NMons','<lam_1>','<lam_2>',\
+                             '<lam_3>','kappa'))
 
             # Check file(s)
+            if not os.path.isdir(wdir):
+                fall_out.write('%g\t%s\t%s\t%s\t%s\t%s\t%s\n'
+                               %(run_arr[casenum],'N/A','N/A','N/A',\
+                                 'N/A','N/A','N/A'))
+                fcase_sf.write('%s\n' %('No directory found'))
+                fcase_sf.close()
+                print("ERR: " + wdir + " does not exist")
+                continue
+
             list_of_files = glob.glob(wdir + '/eig_nptmain_*.xvg')
             if list_of_files == []:
                 fall_out.write('%g\t%s\t%s\t%s\t%s\t%s\t%s\n'
@@ -138,7 +143,7 @@ for pdi_val in pdi_arr:
                                %(chid,int(mon_arr[chid]),\
                                  lam1,lam2,lam3,kappa))
                 fall_out.write('%g\t%g\t%g\t%g\t%g\t%g\t%g\n' \
-                               %(casenum,chid,int(mon_arr[chid]),\
+                               %(run_arr[casenum],chid,int(mon_arr[chid]),\
                                  lam1,lam2,lam3,kappa))
 
             #end for fyle in list_of_files                 
