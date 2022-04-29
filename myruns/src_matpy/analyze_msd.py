@@ -48,8 +48,7 @@ for pdi_val in pdi_arr:
         temp_leg  = str(tval)
         pdiflag = 1;  msdtime = 0; ncases_pertemp = 0
 
-        # Output for each case - different from HBonds since this is
-        # at a specific temperatture
+        # Output at a given temperature for all cases
         fall_out = open(anaout_dir +'/allmsddata_T_'+str(tval)+'_pdi_'\
                         + str(pdi_val)+'.dat','w')
         fall_out.write('%s\t%g\t%s\n' %('MSD @t = ', tref, ' ps'))
