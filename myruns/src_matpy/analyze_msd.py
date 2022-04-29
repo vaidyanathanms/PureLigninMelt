@@ -55,10 +55,6 @@ for pdi_val in pdi_arr:
         for casenum in range(len(run_arr)): # loop in runarr
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
                 '/T_' + str(tval) + '/' + anadir_head
-            if not os.path.isdir(wdir):
-                fall_out.write('%g\t%s\t%s\t%s\n' %(casenum,'N/A','N/A','N/A'))
-                print("ERR: " + wdir + " does not exist")
-                continue
             
             print("Analyzing: ", pdi_val,tval,run_arr[casenum])
             
@@ -69,6 +65,13 @@ for pdi_val in pdi_arr:
             fcase_msd.write('%s\t%s\t%s\n' %('ChainID','Nmons','MSD'))
 
             # Check file(s)
+            if not os.path.isdir(wdir):
+                fall_out.write('%g\t%s\t%s\t%s\n' %(casenum,'N/A','N/A','N/A'))
+                fcase_msd.write('%s\n' %('No directory found'))
+                fcase_msd.close()
+                print("ERR: " + wdir + " does not exist")
+                continue
+
             msd_list_of_files = glob.glob(wdir + '/msd_nptmain_*.xvg')
             if msd_list_of_files == []:
                 fall_out.write('%g\t%s\t%s\t%s\n' %(run_arr[casenum],\
