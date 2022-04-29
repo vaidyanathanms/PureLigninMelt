@@ -19,11 +19,11 @@ temp_arr  = range(300,501,50)
 
 #Input flags
 tg_plot    = 0 # Plotting Tg
-msd_plot   = 1 # Plotting MSD
+msd_plot   = 0 # Plotting MSD
 rg_plot    = 0 # Plotting Rg
 segrg_plot = 0 # Plotting segmental rg
 hb_plot    = 0 # Plotting hydrogen bond data
-shape_plot = 0 # Plotting shape factor
+shape_plot = 1 # Plotting shape factor
 
 #--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
@@ -246,31 +246,75 @@ while shape_plot:
         print("ERROR: ", + anaout_dir + " not found")
         break
 
-    fig, ax = plt.subplots()
-    set_axes(ax,plt,r'Temperature ($K$)',r'$\langle \kappa \rangle$')
-    ymaxref = 0; yminref = 1000; indx=0
+    for tval in temp_arr:
+        
+        fig, ax = plt.subplots()
+        set_axes(ax,plt,r'Temperature ($K$)',r'$\kappa$')
+        ymaxref = 0; yminref = 1000; indx=0
     
-    for pdi_val in pdi_arr:
-        if pdi_val == 'expts':
-            pdileg = 'PDI: Experimental Distribution'
-        else:
-            pdileg = 'PDI: ' + str(pdi_val)
-        fplot = '/shapefacdata_'+str(pdi_val)+'.dat' 
-        if not os.path.exists(anaout_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
-            continue
+        for pdi_val in pdi_arr:
+            if pdi_val == 'expts':
+                pdileg = 'PDI: Experimental Distribution'
+            else:
+                pdileg = 'PDI: ' + str(pdi_val)
 
-        df=pd.read_table(anaout_dir + '/' + fplot)
-        print('Plotting', pdi_val)
-        ax.scatter(x=df['Temp'],y=df['<\kappa>'],label=pdileg)
-        yminref, ymabref = axlims(yminref,y.min(),\
-                                  ymaxref,y.max())
+            fplot = '/shape_T_'+ str(tval) + '_pdi_' + \
+                str(pdi_val)+'.dat'
+            if not os.path.exists(anaout_dir + '/' + fplot):
+                print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+                continue
 
-    ax.legend(loc='upper right')
-    ax.set_ylim([0.95*yminnuref, 1.2*ymaxnuref])
-    fig.savefig(figout_dir + '/'+'kap_allpdi.png',dpi=fig.dpi)
-    fig.savefig(figout_dir + '/'+'kap_allpdi.eps',format='eps')
-    plt.close(fig)
+            # Averaging across cases
+            print('Averaging', pdi_val, tval)
+            df=pd.read_table(anaout_dir + '/' + fplot)
+            mondata = df['NMons']
+            kapdata = df['kappa']
+
+            favg = open(anaout_dir + '/shapeavg_T_'+ str(tval) +\
+                        '_pdi_'+str(pdi_val)+'.dat','w')
+            favg.write('%s\t%s\t%s\n' %('NMons','AvgKappa','Ncnts'))
+
+            av_monarr = []; av_kaparr = []; av_cntarr = []
+            for monindx in range(len(mondata)):
+                monval = mondata[monindx]; kappa = kapdata[monindx]
+                if math.isnan(monval):
+                    continue
+                elif monval in av_monarr:
+                    av_kaparr[list(av_monarr).index(monval)] += kappa
+                    av_cntarr[list(av_monarr).index(monval)] += 1
+                else:
+                    av_monarr = np.append(av_monarr,monval)
+                    av_kaparr = np.append(av_kaparr,kappa)
+                    av_cntarr = np.append(av_cntarr,1)
+
+            for avval in range(len(av_monarr)):
+                favg.write('%g\t%g\t%g\n' %(av_monarr[avval],\
+                                            av_kaparr[avval],\
+                                            av_cntarr[avval]))
+
+            favg.close()
+            if len(av_kaparr) != len(av_monarr) or \
+               len(av_kaparr) != len(av_cntarr):
+                print('FATAL ERR: Sizes not same for pdi/T: ',\
+                      pdi_val, tval)
+                continue
+
+            #Plotting data
+            print('Plotting', pdi_val, tval)
+            plt.scatter(av_monarr,av_kaparr/av_cntarr,\
+                        marker=mrk_arr[indx],label=pdileg)
+            yminref, ymaxref = axlims(yminref,(av_kaparr/av_cntarr).min(),\
+                                      ymaxref,(av_kaparr/av_cntarr).max()) 
+            indx += 1
+
+
+        ax.legend(loc='upper right')
+        ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+        fig.savefig(figout_dir + '/'+'kapdist_T_' + str(tval) +\
+                    'pdi.png',dpi=fig.dpi)
+        fig.savefig(figout_dir + '/'+'kapdist_T_' + str(tval) +\
+                    '.eps',format='eps')
+        plt.close(fig)
     shape_plot = 0
 #----------------------End shape plots----------------------------------
 
