@@ -71,14 +71,16 @@ for pdi_val in pdi_arr:
             # Check file(s)
             msd_list_of_files = glob.glob(wdir + '/msd_nptmain_*.xvg')
             if msd_list_of_files == []:
-                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fall_out.write('%g\t%s\t%s\t%s\n' %(run_arr[casenum],\
+                                                    'N/A','N/A','N/A'))
                 fcase_msd.write('%s\n' %('No chains found'))
                 fcase_msd.close()
                 print("MSD files do not exist for ", tval)
                 continue
 
             if len(msd_list_of_files) != nchains:
-                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fall_out.write('%g\t%s\t%s\t%s\n' %(run_arr[casenum],\
+                                                    'N/A','N/A','N/A'))
                 fcase_msd.write('%s\n' %('DiffNchains'))
                 fcase_msd.close()
                 print('ERR: Mismatch in number of analysis file and input',\
@@ -86,7 +88,8 @@ for pdi_val in pdi_arr:
                 continue
 
             if not os.path.exists(wdir + '/chainlist.dat'):
-                fall_out.write('%g\t%s\t%s\t%s\n' %(Casenum,'N/A','N/A','N/A'))
+                fall_out.write('%g\t%s\t%s\t%s\n' %(run_arr[casenum],\
+                                                    'N/A','N/A','N/A'))
                 fcase_msd.write('%s\n' %('Nochainlist'))
                 fcase_msd.close()
                 print('ERR: chainlist.dat not found')
