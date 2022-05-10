@@ -25,6 +25,8 @@ import subprocess
 def compute_tg(df,ax):
 
     tvals = np.array(df['Temp']); den_vals = np.array(df['SV_NPT'])
+    wvals = np.array(df['SV_err']); wvals = 1/wvals
+
     lden  = len(tvals); 
     if lden < 7:
         print("ERR:Requires at least 7 temperature points to fit")
@@ -35,19 +37,31 @@ def compute_tg(df,ax):
 
     for cnt in range(2,lden-1):
 
-        clf.fit(tvals[0:cnt].reshape(-1,1),den_vals[0:cnt])
+        low_fit = clf.fit(tvals[0:cnt].reshape(-1,1),den_vals[0:cnt],\
+                          sample_weight = wvals[0:cnt])
         predlo = clf.predict(tvals[0:cnt].reshape(-1,1))
-        errlo  = metrics.mean_squared_error(den_vals[0:cnt],predlo)
-
-        clf.fit(tvals[cnt:lden].reshape(-1,1),den_vals[cnt:lden])
+        errlo = np.sum(wvals[0:cnt]*(tvals[0:cnt]-predlo)**2)
+#        errlo  = wvals[0:cnt]*metrics.mean_squared_error(den_vals[0:cnt],predlo)
+#        print(cnt,errlo)
+        
+        hi_fit = clf.fit(tvals[cnt:lden].reshape(-1,1),den_vals[cnt:lden],\
+                         sample_weight = wvals[cnt:lden])
         predhi = clf.predict(tvals[cnt:lden].reshape(-1,1))
-        errhi  = metrics.mean_squared_error(den_vals[cnt:lden],predhi)
+        errhi = np.sum(wvals[cnt:lden]*(tvals[cnt:lden]-predhi)**2)
+#        errhi  = wvals[cnt:lden]*metrics.mean_squared_error(den_vals[cnt:lden],predhi)
+#        print(cnt,errhi)
+        
         if errlo + errhi < toterr:
             refcnt = cnt; toterr = errlo + errhi
-            refpredlo = predlo; refpredhi = predhi
-    ax.plot(tvals[0:refcnt],refpredlo,'--',color='red',linewidth=2,label='Fit')
-    ax.plot(tvals[refcnt:lden],refpredhi,'--',color='red',linewidth=2,label='Fit')
-    return tvals[refcnt]
+            refpredlo = low_fit.predict(tvals[0:cnt+1].reshape(-1,1))
+            refpredhi = hi_fit.predict(tvals[cnt-1:lden].reshape(-1,1))
+            
+    ax.plot(tvals[0:refcnt+1],refpredlo,'--',color='r',\
+            linewidth=2,label='Fit_Low')
+    ax.plot(tvals[refcnt-1:lden],refpredhi,'--',color='g',\
+            linewidth=2,label='Fit_High')
+    return tvals[refcnt],low_fit.intercept_,low_fit.coef_,errlo,\
+        hi_fit.intercept_,hi_fit.coef_,errhi
 #------------------------------------------------------------------ 
 
 # Compute Rgscaling

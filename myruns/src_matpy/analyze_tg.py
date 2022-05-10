@@ -36,6 +36,13 @@ anaout_dir = anaout_dir + '/dens_results' # result_outputs
 if not os.path.isdir(anaout_dir):
     os.mkdir(anaout_dir)
 
+# Fit parameters
+ffit_out = open(anaout_dir +'/fit_tgdata.dat','w')
+ffit_out.write('%s\n' %('Fitting points to m_lo*x+c_lo & m_hi*x+c_hi'))
+ffit_out.write('%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\n'\
+               %('PDI','T_g','TotCase','c_lo','m_lo','err_lo','c_hi',\
+                 'm_hi','err_hi'))
+
 for pdi_val in pdi_arr:
 
     # Set/Check directories
@@ -52,7 +59,7 @@ for pdi_val in pdi_arr:
     fall_out = open(anaout_dir +'/alltgdata_'+str(pdi_val)+'.dat','w')
     fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','Dens_R1','Dens_R2',\
                                                 'Dens_R3','Dens_R4','TotCase'))
-    
+   
     # Set arrays
     yrho_avg = [] # Average density
     ncasetot = [] # Total cases per temperature
@@ -153,10 +160,13 @@ for pdi_val in pdi_arr:
     set_axes(axa,plt,r'Temperature ($K$)',r'Specific Volume ($cm^3$/$g$)')
     plt.errorbar(x=df['Temp'],y=df['SV_NPT'],yerr=df['SV_err'],\
                  label='Data',marker='o')
-    plt.legend(loc='upper left')
-    tgval = compute_tg(df,axa) #compute tgval
+    axa.legend(loc='upper left')
+    tgval,lc,lm,le,hc,hm,he = compute_tg(df,axa) #compute tgval
+    ffit_out.write('%s\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\n'\
+                   %(str(pdi_val),tgval,ncases_pertemp,lc,lm,le,hc,hm,he))
+    
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.png',dpi=figa.dpi)
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.eps',format='eps')
     plt.close(figa) # End of PDI loop
-    
+ffit_out.close()
 #------- End Tg analysis -----------------------------------------------
