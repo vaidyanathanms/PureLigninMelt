@@ -15,25 +15,27 @@ from scipy.stats import sem
 
 #Input data
 pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
-temp_arr  = range(300,501,50)
+temp_arr  = range(300,501,50) # for temperature specific plots
 
 #Input flags
 tg_plot    = 0 # Plotting Tg
-msd_plot   = 0 # Plotting MSD
-rg_plot    = 0 # Plotting Rg
-segrg_plot = 0 # Plotting segmental rg
+msd_plot   = 1 # Plotting MSD
+rg_plot    = 0 # Plotting average Rg
+bnu_plot   = 0 # Plotting segmental Rg
+rgNM_plot  = 0 # Plotting segmental Rg as a function of deg of poly
 hb_plot    = 0 # Plotting hydrogen bond data
-shape_plot = 1 # Plotting shape factor
+shape_plot = 0 # Plotting shape factor
 
 #--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
     
     print("Plotting Tg data")
-    anaout_dir = anaout_dir + '/dens_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
-        print("ERROR: ", + anaout_dir + " not found")
+    anaout1_dir = anaout_dir + '/dens_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
         break
 
+    # Plot all dataa
     fig, ax = plt.subplots()
     set_axes(ax,plt,r'Temperature ($K$)',\
              r'Specific Volume ($cm^{3}/g$)')
@@ -45,12 +47,44 @@ while tg_plot: # Stupid Python won't let me break if loops easily
         else:
             pdileg = 'PDI: ' + str(pdi_val)
         fplot = '/tgdata_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
             continue
         
         print('Plotting', pdi_val)
-        df=pd.read_table(anaout_dir + '/' + fplot)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
+        plt.errorbar(x=df['Temp'],y=df['SV_NPT'],yerr=df['SV_err'],\
+                     marker=mrk_arr[indx],label=pdileg,\
+                     capsize=5,linestyle='None')
+        yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
+                                  ymaxref,df['SV_NPT'].max()) 
+        indx += 1
+
+    plt.legend(loc='upper left')
+#    print(ymaxref)
+    ax.set_ylim([0.98*yminref, 1.05*ymaxref])
+    fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
+    plt.close(fig)
+    tg_plot = 0     
+'''    # Plot average Tg
+    fig2, ax2 = plt.subplots()
+    set_axes(ax2,plt,r'Temperature ($K$)',\
+             r'Specific Volume ($cm^{3}/g$)')
+    ymaxref = 0; yminref = 1000; indx=0
+    
+    for pdi_val in pdi_arr:
+        if pdi_val == 'expts':
+            pdileg = 'PDI: Experimental Distribution'
+        else:
+            pdileg = 'PDI: ' + str(pdi_val)
+        fplot = '/tgdata_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
+            continue
+        
+        print('Plotting', pdi_val)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
         plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
                     ,label=pdileg)
         yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
@@ -61,17 +95,19 @@ while tg_plot: # Stupid Python won't let me break if loops easily
     ax.set_ylim([0.95*yminref, 1.2*ymaxref])
     fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
     fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
-    plt.close(fig)
-    tg_plot = 0 
+    plt.close(fig)'''
+    
+
+
 #--- End plotting Tg data -----------------------------------------
 
 #--------Plot MSD data for all PDI together------------------------
 while msd_plot:
 
     print("Plotting MSD data")
-    anaout_dir = anaout_dir + '/msd_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
-        print("ERROR: ", + anaout_dir + " not found")
+    anaout1_dir = anaout_dir + '/msd_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
         break
 
     for tval in temp_arr:
@@ -89,52 +125,62 @@ while msd_plot:
             fplot = '/allmsddata_T_'+ str(tval) + '_pdi_' + \
                 str(pdi_val)+'.dat'
             
-            if not os.path.exists(anaout_dir + '/' + fplot):
-                print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+            if not os.path.exists(anaout1_dir + '/' + fplot):
+                print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
                 continue
 
             # Averaging across cases
             print('Averaging', pdi_val, tval)
-            df=pd.read_table(anaout_dir + '/' + fplot,skiprows=1)
+            df=pd.read_table(anaout1_dir + '/' + fplot,skiprows=1)
             mondata = df['NMons']
             msddata = df['MSD']
 
-            favg = open(anaout_dir + '/msdavg_T_'+ str(tval) +\
+            favg = open(anaout1_dir + '/msdavg_T_'+ str(tval) +\
                         '_pdi_'+str(pdi_val)+'.dat','w')
-            favg.write('%s\t%s\t%s\n' %('NMons','AvgMSD','Ncnts'))
+            favg.write('%s\t%s\t%s\t%s\n' %('NMons','AvgMSD',\
+                                            'ErrMSD','Ncnts'))
             
-            av_monarr = []; av_msdarr = []; av_cntarr = []
-            for monindx in range(len(mondata)):
-                monval = mondata[monindx]; msd = msddata[monindx]
-                if math.isnan(monval):
-                    continue
-                elif monval in av_monarr:
-                    av_msdarr[list(av_monarr).index(monval)] += msd
-                    av_cntarr[list(av_monarr).index(monval)] += 1
-                else:
-                    av_monarr = np.append(av_monarr,monval)
-                    av_msdarr = np.append(av_msdarr,msd)
-                    av_cntarr = np.append(av_cntarr,1)
+            print('Plotting', pdi_val, tval)
+            monplot,msdplot,errplot,cntall = comp_bin_ave_sem(mondata,msddata)
+            plt.errorbar(x=monplot,y=msdplot,yerr=errplot,\
+                         marker=mrk_arr[indx],label=pdileg,\
+                         capsize=5,linestyle='None')
+#            yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
+#                                      ymaxref,(av_msdarr/av_cntarr).max()) 
+            indx += 1
+            
+            # av_monarr = []; av_msdarr = []; av_cntarr = [] #Method 2
+            # for monindx in range(len(mondata)):
+            #     monval = mondata[monindx]; msd = msddata[monindx]
+            #     if math.isnan(monval):
+            #         continue
+            #     elif monval in av_monarr:
+            #         av_msdarr[list(av_monarr).index(monval)] += msd
+            #         av_cntarr[list(av_monarr).index(monval)] += 1
+            #     else:
+            #         av_monarr = np.append(av_monarr,monval)
+            #         av_msdarr = np.append(av_msdarr,msd)
+            #         av_cntarr = np.append(av_cntarr,1)
 
-            for avval in range(len(av_monarr)):
-                favg.write('%g\t%g\t%g\n' %(av_monarr[avval],\
-                                            av_msdarr[avval],\
-                                            av_cntarr[avval]))
-            favg.close()
+            # for avval in range(len(av_monarr)):
+            #     favg.write('%g\t%g\t%g\n' %(av_monarr[avval],\
+            #                                 av_msdarr[avval],\
+            #                                 av_cntarr[avval]))
+            # favg.close()
 
-            if len(av_msdarr) != len(av_monarr) or \
-               len(av_msdarr) != len(av_cntarr):
-                print('FATAL ERR: Sizes not same for pdi/T: ',\
-                      pdi_val, tval)
-                continue
+            # if len(av_msdarr) != len(av_monarr) or \
+            #    len(av_msdarr) != len(av_cntarr):
+            #     print('FATAL ERR: Sizes not same for pdi/T: ',\
+            #           pdi_val, tval)
+            #     continue
 
             #Plotting data
-            print('Plotting', pdi_val, tval)
-            plt.scatter(av_monarr,100*av_msdarr/av_cntarr,\
-                        marker=mrk_arr[indx],label=pdileg)
-            yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
-                                      ymaxref,(av_msdarr/av_cntarr).max()) 
-            indx += 1
+            # print('Plotting', pdi_val, tval) #
+            # plt.scatter(av_monarr,100*av_msdarr/av_cntarr,\
+            #            marker=mrk_arr[indx],label=pdileg)
+            # yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
+            #                           ymaxref,(av_msdarr/av_cntarr).max()) 
+            # indx += 1
         
         plt.legend(loc='upper right')
         ax.set_ylim([95*yminref, 120*ymaxref])
@@ -150,9 +196,9 @@ while msd_plot:
 #--------Plot Rg2-Temp data for all PDI values together-------------------
 while rg_plot:
     print("Plotting Rg data")
-    anaout_dir = anaout_dir + '/rg_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
-        print("ERROR: ", + anaout_dir + " not found")
+    anaout1_dir = anaout_dir + '/rg_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
         break
 
     fig, ax = plt.subplots()
@@ -166,16 +212,16 @@ while rg_plot:
         else:
             pdileg = 'PDI: ' + str(pdi_val)
         fplot = '/Rgdata_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
             continue
 
         print('Plotting', pdi_val)
-        df=pd.read_table(anaout_dir + '/' + fplot)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
         plt.scatter(x=df['Temp'],y=df['<Rg^2>'],marker=mrk_arr[indx],\
                     label=pdileg); indx+=1
-        yminref, ymaxref = axlims(yminref,y.min(),\
-                                  ymaxref,y.max())
+        yminref, ymaxref = axlims(yminref,df['<Rg^2>'].min(),\
+                                  ymaxref,df['<Rg^2>'].max())
     
     plt.legend(loc='upper right')
     ax.set_ylim([0.95*yminref, 1.2*ymaxref])
@@ -186,11 +232,11 @@ while rg_plot:
 #----------------------End Rg2 plots--------------------------------------
 
 #--------Plot b/nu-Temp data for all PDI values together------------------
-while segrg_plot:
+while bnu_plot:
 
     print("Plotting Rg Scaling Coefficients")
-    anaout_dir = anaout_dir + '/segrg_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
+    anaout1_dir = anaout_dir + '/segrg_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
         print("ERROR: ", + anaout_dir + " not found")
         break
 
@@ -200,29 +246,29 @@ while segrg_plot:
     
     fig2, ax2 = plt.subplots()
     set_axes(ax2,plt,r'Temperature ($K$)',r'$C_{l}$ ($\AA$)') 
-    ymaxbref = 0; yminbref = 1000; indx=0
-
-    
+    ymaxbref = 0; yminbref = 1000; indx = 0
+   
     for pdi_val in pdi_arr:
         if pdi_val == 'expts':
             pdileg = 'PDI: Experimental Distribution'
         else:
             pdileg = 'PDI: ' + str(pdi_val)
         fplot = '/Rgscaling_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
             continue
 
         print('Plotting', pdi_val)
-        df=pd.read_table(anaout_dir + '/' + fplot)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
         ax.scatter(x=df['Temp'],y=df['nu'],marker=mrk_arr[indx]\
                    ,label = pdileg); indx += 1
-        yminnuref, ymaxnuref = axlims(yminnuref,y.min(),\
-                                  ymaxnuref,y.max())
+        yminnuref, ymaxnuref = axlims(yminnuref,df['nu'].min(),\
+                                  ymaxnuref,df['nu'].max())
         ax2.scatter(x=df['Temp'],y=df['b'],label = pdileg)
-        yminbref, ymaxbref = axlims(yminbref,y.min(),\
-                                  ymaxbref,y.max())
+        yminbref, ymaxbref = axlims(yminbref,df['b'].min(),\
+                                  ymaxbref,df['b'].max())
 
+        
     ax.legend(loc='upper right')
     ax.set_ylim([0.95*yminnuref, 1.2*ymaxnuref])
     fig.savefig(figout_dir + '/'+'nu_allpdi.png',dpi=fig.dpi)
@@ -234,22 +280,70 @@ while segrg_plot:
     fig2.savefig(figout_dir + '/'+'perlen_allpdi.png',dpi=fig2.dpi)
     fig2.savefig(figout_dir + '/'+'perlen_allpdi.eps',format='eps')
     plt.close(fig2)
-    segrg_plot = 0
+    bnu_plot = 0
+#----------------------End scaling plots----------------------------------
+
+#--------Plot Rg as a function of degree of polymerization ---------------
+while rgNM_plot:
+
+    print("Plotting Rg as a function of degree of polymerization")
+    anaout1_dir = anaout_dir + '/segrg_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout_dir + " not found")
+        break
+    Nmax = 25 #maximum N at which the plot is cut if lxy>length of polymer
+            
+    for tempval in temp_arr:
+
+        fig, ax = plt.subplots()
+        set_axes(ax,plt,r'$N$',r'$R_g$ ($\AA$)') 
+        ymaxref = 0; yminref = 100000; indx =0
+    
+        for pdi_val in pdi_arr:
+            if pdi_val == 'expts':
+                pdileg = 'PDI: Experimental Distribution'
+            else:
+                pdileg = 'PDI: ' + str(pdi_val)
+            fplot = '/allRgdata_T_'+str(tempval)+'_PDI_'+\
+                str(pdi_val)+'.dat'
+            if not os.path.exists(anaout1_dir + '/' + fplot):
+                print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
+                continue
+
+            print('Plotting T/PDI: ', tempval, pdi_val)
+            df=pd.read_table(anaout1_dir + '/' + fplot)
+            xo = df['N']; yo = df['RgMean']; yoerr = df['RgSEM']
+            lxy = min(len(xo),Nmax)
+            plt.errorbar(x=xo[:lxy],y=yo[:lxy],yerr=yoerr[:lxy],\
+                         marker=mrk_arr[indx],label=pdileg,\
+                         capsize=5,linestyle='None')
+            yminref, ymaxref = axlims(yminref,yo[:lxy].min(),\
+                                      ymaxref,yo[:lxy].max())
+            indx += 1
+        ax.set_yscale('log'); ax.set_xscale('log')
+        ax.legend(loc='upper left')
+        ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+        fig.savefig(figout_dir + '/'+'RgN_T_' + str(tempval)\
+                    +'.png',dpi=fig.dpi)
+        fig.savefig(figout_dir + '/'+'RgN_T_' + str(tempval)\
+                    +'.eps',format='eps')
+        plt.close(fig)
+    rgNM_plot = 0
 #----------------------End scaling plots----------------------------------
 
 #-------Plot Kappa-Temp data for all PDI values together------------------
 while shape_plot:
 
     print("Plotting shape data")
-    anaout_dir = anaout_dir + '/shape_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
-        print("ERROR: ", + anaout_dir + " not found")
+    anaout1_dir = anaout_dir + '/shape_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
         break
 
     for tval in temp_arr:
         
         fig, ax = plt.subplots()
-        set_axes(ax,plt,r'Temperature ($K$)',r'$\kappa$')
+        set_axes(ax,plt,r'$N$',r'$\kappa$')
         ymaxref = 0; yminref = 1000; indx=0
     
         for pdi_val in pdi_arr:
@@ -260,17 +354,17 @@ while shape_plot:
 
             fplot = '/shape_T_'+ str(tval) + '_pdi_' + \
                 str(pdi_val)+'.dat'
-            if not os.path.exists(anaout_dir + '/' + fplot):
-                print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+            if not os.path.exists(anaout1_dir + '/' + fplot):
+                print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
                 continue
 
             # Averaging across cases
             print('Averaging', pdi_val, tval)
-            df=pd.read_table(anaout_dir + '/' + fplot)
+            df=pd.read_table(anaout1_dir + '/' + fplot)
             mondata = df['NMons']
             kapdata = df['kappa']
 
-            favg = open(anaout_dir + '/shapeavg_T_'+ str(tval) +\
+            favg = open(anaout1_dir + '/shapeavg_T_'+ str(tval) +\
                         '_pdi_'+str(pdi_val)+'.dat','w')
             favg.write('%s\t%s\t%s\n' %('NMons','AvgKappa','Ncnts'))
 
@@ -322,9 +416,9 @@ while shape_plot:
 while hb_plot:
 
     print("Plotting all HB data")
-    anaout_dir = anaout_dir + '/msd_results' # result_outputs
-    if not os.path.isdir(anaout_dir):
-        print("ERROR: ", + anaout_dir + " not found")
+    anaout1_dir = anaout_dir + '/msd_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
         break
     
     fig, ax = plt.subplots()
@@ -344,12 +438,12 @@ while hb_plot:
         else:
             pdileg = 'PDI: ' + str(pdi_val)
         fplot = '/HBdata_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout_dir)
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
             continue
 
         print('Plotting', pdi_val)
-        df=pd.read_table(anaout_dir + '/' + fplot)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
         ax.scatter(x=df['Temp'],y=df['Intra_HB'],marker=mrk_arr[indx],\
                    label=pdileg)
         ax2.scatter(x=df['Temp'],y=df['Inter_HB'],marker=mrk_arr[indx],\

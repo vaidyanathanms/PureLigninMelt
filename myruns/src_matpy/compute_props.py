@@ -12,6 +12,7 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from scipy.optimize import curve_fit
+from scipy.stats import sem
 import os
 import sys
 import re
@@ -26,55 +27,114 @@ def compute_tg(df,ax):
 
     tvals = np.array(df['Temp']); den_vals = np.array(df['SV_NPT'])
     wvals = np.array(df['SV_err']); wvals = 1/wvals
+    swvals = np.sum(wvals); wvals /= swvals
 
     lden  = len(tvals); 
     if lden < 7:
         print("ERR:Requires at least 7 temperature points to fit")
         return 0
 
+    
     clf = LinearRegression(fit_intercept = True) 
-    toterr = 99999999999 
+    toterr = 9.0*10**20; reflm = 0; reflc = 0; refhm = 0; refhc = 0
+    refle = 0; refhe = 0
 
     for cnt in range(2,lden-1):
 
         low_fit = clf.fit(tvals[0:cnt].reshape(-1,1),den_vals[0:cnt],\
                           sample_weight = wvals[0:cnt])
+        lc = low_fit.intercept_; lm = low_fit.coef_
         predlo = clf.predict(tvals[0:cnt].reshape(-1,1))
-        errlo = np.sum(wvals[0:cnt]*(tvals[0:cnt]-predlo)**2)
-#        errlo  = wvals[0:cnt]*metrics.mean_squared_error(den_vals[0:cnt],predlo)
-#        print(cnt,errlo)
+        errlo = np.sum(np.multiply(wvals[0:cnt],np.square((den_vals[0:cnt]-predlo))))
         
         hi_fit = clf.fit(tvals[cnt:lden].reshape(-1,1),den_vals[cnt:lden],\
                          sample_weight = wvals[cnt:lden])
         predhi = clf.predict(tvals[cnt:lden].reshape(-1,1))
-        errhi = np.sum(wvals[cnt:lden]*(tvals[cnt:lden]-predhi)**2)
-#        errhi  = wvals[cnt:lden]*metrics.mean_squared_error(den_vals[cnt:lden],predhi)
-#        print(cnt,errhi)
-        
+        hc = low_fit.intercept_; hm = low_fit.coef_
+        errhi = np.sum(np.multiply(wvals[cnt:lden],np.square((den_vals[cnt:lden]-predhi))))
+
         if errlo + errhi < toterr:
             refcnt = cnt; toterr = errlo + errhi
-            refpredlo = low_fit.predict(tvals[0:cnt+1].reshape(-1,1))
-            refpredhi = hi_fit.predict(tvals[cnt-1:lden].reshape(-1,1))
+            reflm = lm; reflc = lc; refhm = hm; refhc = hc
+            refle = errlo; refhe = errhi
             
-    ax.plot(tvals[0:refcnt+1],refpredlo,'--',color='r',\
-            linewidth=2,label='Fit_Low')
-    ax.plot(tvals[refcnt-1:lden],refpredhi,'--',color='g',\
-            linewidth=2,label='Fit_High')
-    return tvals[refcnt],low_fit.intercept_,low_fit.coef_,errlo,\
-        hi_fit.intercept_,hi_fit.coef_,errhi
+    # Solve linear equations y-m1x = c1 & y-m2x = c2
+    lhs = np.array([[1,-reflm[0]], [1,-refhm[0]]])
+    rhs = np.array([reflc,refhc])
+    tg  = np.linalg.solve(lhs,rhs)
+    return tg[1],reflc, reflm, refle, refhc, refhm, refhe
 #------------------------------------------------------------------ 
 
 # Compute Rgscaling
 def compute_rgscaling(df):
     N_all = np.array(df['N']); Rg_all = np.array(df['Rgmean'])
-    lenarr = min(math.floor(0.5*len(N_all)),50)
+    lenarr = min(math.floor(0.5*len(N_all)),10)
     if lenarr == 0:
         print("ERR: No data found")
-        return [0,0], 0
-    xarr = N_all[0:lenarr]; yarr = Rg_all[0:lenarr]
-    pars, cov = curve_fit(func_powerlaw,xarr,yarr,p0=np.asarray([2, 0.5]))
+        return [float('NaN'),float('NaN')], float('NaN')
+    xarr = N_all[:lenarr]; yarr = Rg_all[:lenarr]
+    pars, cov = curve_fit(func_powerlaw,xarr,yarr,p0=np.asarray([10,0.5]))
     stdevs = np.sqrt(np.diag(cov))
     return pars, cov
+#------------------------------------------------------------------ 
+
+# Define power law
+def func_powerlaw(x,a,b):
+    return a*x**b
+#------------------------------------------------------------------ 
+
+# Return averages over bins
+def compute_bin_averages(xdata,ydata):
+
+    xoutarr = np.empty(0); ysumarr = np.empty(0);
+    cntarr  = np.empty(0)
+
+    if len(xdata) == [] or len(ydata) == []:
+        print('Error: No Data Present\n')
+        return xoutarr,ysumarr,cntarr,ysumarr
+        
+    for i in range(len(xdata)):
+        xval = xdata[i]; yval = ydata[i]
+        if math.isnan(xval) or math.isnan(yval):
+            continue
+        elif xval in xoutarr: 
+            ysumarr[list(xoutarr).index(xval)] += yval
+            cntarr[list(xoutarr).index(xval)]  += 1
+        else:
+            xoutarr = np.append(xoutarr,xval)
+            ysumarr = np.append(ysumarr,yval)
+            cntarr  = np.append(cntarr,1)
+
+    return xoutarr, ysumarr/cntarr, cntarr, ysumarr
+#------------------------------------------------------------------ 
+
+# Return averages and SEM over bins
+def comp_bin_ave_sem(xdata,ydata):
+
+    xoutarr = []; yallarr = [] 
+
+    if len(xdata) == [] or len(ydata) == []:
+        print('Error: No Data Present\n')
+        return [],[],[]
+        
+    for i in range(len(xdata)):
+        xval = xdata[i]; yval = ydata[i]
+        if math.isnan(xval) or math.isnan(yval):
+            continue
+        elif xval in xoutarr:
+            index = list(xoutarr).index(xval)
+            yallarr[index].append(yval) #as list
+        else:
+            xoutarr.append(xval) #just an element
+            yallarr.append([yval]) #as list
+
+    yavearr = np.empty(0); ysemarr = np.empty(0); cntarr = np.empty(0)
+    for i in range(len(xoutarr)):
+        yavearr = np.append(yavearr,np.mean(np.array(yallarr[i])))
+        ysemarr = np.append(ysemarr,sem(np.array(yallarr[i])))
+        cntarr  = np.append(cntarr,np.size(np.array(yallarr[i])))
+            
+    return xoutarr, yavearr, ysemarr, cntarr
 #------------------------------------------------------------------ 
 
 # Return closest MSD at given tref
@@ -89,11 +149,6 @@ def msd_tref(data,reft):
                 sl = (data[tind+1,1]-data[tind,1])/\
                     (data[tind+1,0]-data[tind,0])
                 return data[tind,1] + sl*(reft-data[tind,0])
-#------------------------------------------------------------------ 
-# Define power law
-def func_powerlaw(x,a,b):
-    return a*x**b
-
 #------------------------------------------------------------------ 
 # if __name__
 if __name__ == '__main__':

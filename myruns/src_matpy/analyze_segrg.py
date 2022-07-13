@@ -19,7 +19,7 @@ run_arr   = [1,2,3,4] # run numbers for a given biomass
 temp_min  = 250 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
-pdi_arr   = [1.0,1.8,3.0,'expts']
+pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
 mark_arr  = ['o','d','s']
 nchains   = 20
 anadir_head = 'all_radgyr' # change this for different analysis
@@ -67,7 +67,15 @@ for pdi_val in pdi_arr:
     for tval in range(temp_min,temp_max,temp_dt): # loop in temp
         temp_leg  = str(tval)
         nu_avg = 0; b_avg = 0; ncases_pertemp = 0; pdiflag = 1
+        # Combine all cases in a single file
+        ftall_out = open(anaout_dir +'/allRgdata_T_'+str(tval) + \
+                         '_PDI_' + str(pdi_val)+'.dat','w')
+        ftall_out.write('%s\t%s\t%s\t%s\n' %('N','RgMean','RgSEM','Counts'))
+        fall_out.write('%s\t%s\t%s\t%s\t%s\t%s\n' %('Temp','b_R1','b_R2',\
+                                                'b_R3','b_R4','TotCase'))
+
         fall_out.write('%g\t' %(tval)); fall2_out.write('%g\t' %(tval))
+        N_all = []; Rg_all = []
         
         for casenum in range(len(run_arr)): # loop in runarr
             wdir = simout_dir + '/run_' + str(run_arr[casenum]) +\
@@ -89,14 +97,26 @@ for pdi_val in pdi_arr:
             df = pd.read_csv(outfile,sep="\s+")
             fits,err = compute_rgscaling(df)
             fall_out.write('%g\t' %(fits[0])); fall2_out.write('%g\t' %(fits[1]))
+            if math.isnan(fits[0]) or math.isnan(fits[1]):
+                continue #check if NaNs are returned
             b_avg += fits[0]; nu_avg += fits[1] # end of casenum loop
             ncases_pertemp += 1
+
             
+            # Add to ftall_out
+            N_all  = np.append(N_all,np.array(df['N']))
+            Rg_all = np.append(Rg_all,np.array(df['Rgmean']))
+            
+                
         # Do NOT continue if zero cases are found
         if ncases_pertemp == 0:
             fall_out.write('%g\n' %(ncases_pertemp))
             fall2_out.write('%g\n' %(ncases_pertemp))
             continue
+
+        Nout,Rgave,Rgsem,Nccnt = comp_bin_ave_sem(N_all, Rg_all)
+        for nj in range(len(Nout)):
+            ftall_out.write('%g\t%g\t%g\t%g\n' %(Nout[nj],Rgave[nj],Rgsem[nj],Nccnt[nj]))
 
         # Average and write for each temp
         b_avg /= ncases_pertemp
@@ -104,6 +124,7 @@ for pdi_val in pdi_arr:
         fall_out.write('%g\n' %(ncases_pertemp))
         fall2_out.write('%g\n' %(ncases_pertemp))
         fall_fit.write('%g\t%g\t%g\t%g\n' %(tval,b_avg,nu_avg,ncases_pertemp))
+        ftall_out.close()
         # end of tval loop
 
     # Close temp files

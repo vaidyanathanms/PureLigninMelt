@@ -17,7 +17,7 @@ from scipy.stats import sem
 
 # Input data for analysis
 run_arr   = [1,2,3,4] # run numbers for a given biomass
-temp_min  = 250 # Minimum temperature
+temp_min  = 310 # Minimum temperature
 temp_max  = 501 # Maximum temperature
 temp_dt   = 10  # Temperature dt
 pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
@@ -160,11 +160,18 @@ for pdi_val in pdi_arr:
     set_axes(axa,plt,r'Temperature ($K$)',r'Specific Volume ($cm^3$/$g$)')
     plt.errorbar(x=df['Temp'],y=df['SV_NPT'],yerr=df['SV_err'],\
                  label='Data',marker='o')
-    axa.legend(loc='upper left')
     tgval,lc,lm,le,hc,hm,he = compute_tg(df,axa) #compute tgval
     ffit_out.write('%s\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\n'\
                    %(str(pdi_val),tgval,ncases_pertemp,lc,lm,le,hc,hm,he))
-    
+
+    xlo_plt = np.arange(temp_min-1.5*temp_dt,tgval+2*temp_dt,temp_dt)
+    ylo_plt = lm*xlo_plt + lc
+    plt.plot(xlo_plt,ylo_plt,'--',color='r',linewidth=2,label='Fit_Low')
+    xhi_plt = np.arange(tgval-2*temp_dt,temp_max+1.5*temp_dt,temp_dt)
+    yhi_plt = hm*xhi_plt + hc
+
+    plt.plot(xhi_plt,yhi_plt,'--',color='g',linewidth=2,label='Fit_High')
+    axa.legend(loc='upper left')
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.png',dpi=figa.dpi)
     figa.savefig(figout_dir+'/'+'svt_'+str(pdi_val)+'.eps',format='eps')
     plt.close(figa) # End of PDI loop

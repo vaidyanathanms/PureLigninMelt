@@ -21,8 +21,8 @@ if not os.path.isdir(figout_dir):
 
 # Color/line data
 orange = '#FFA500'; dark_g = '#006400'; brown = '#8B4513'
-clr_arr = [dark_g,orange,brown,'b','k','m','r']
-mrk_arr = ['o','d','s','v','*','H']
+clr_arr = [dark_g,orange,brown,'m','b','r']
+mrk_arr = ['o','d','s','v','H','>']
 lne_arr = ['-','--']
 #------------------------------------------------------------------
 
