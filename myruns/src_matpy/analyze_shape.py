@@ -124,6 +124,7 @@ for pdi_val in pdi_arr:
 
             for fyle in list_of_files: # chain loop
                 chid = ret_chid(fyle)
+#                print('Analyzing chain: ', chid)
                 # Open and parse file
                 with open(fyle) as fin:
                     lines = (line.lstrip() for line in fin \
@@ -131,6 +132,9 @@ for pdi_val in pdi_arr:
                              not line.lstrip().startswith('@'))
                     data  = np.loadtxt(lines) #end with open(fyle)
 
+                if data.ndim != 2:
+                    print('Not enough data for chain ID: ', chid)
+                    continue
                 l1 = int(start_frac*len(data[:1]))
                 l2 = len(data[:,1])
                 lam1 = np.average(data[l1:l2,2])

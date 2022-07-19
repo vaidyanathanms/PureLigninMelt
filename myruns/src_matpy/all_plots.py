@@ -15,16 +15,16 @@ from scipy.stats import sem
 
 #Input data
 pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
-temp_arr  = range(300,501,50) # for temperature specific plots
+temp_arr  = range(300,501,10) # for temperature specific plots
 
 #Input flags
-tg_plot    = 0 # Plotting Tg
+tg_plot    = 1 # Plotting Tg
 msd_plot   = 0 # Plotting MSD
 rg_plot    = 0 # Plotting average Rg
 bnu_plot   = 0 # Plotting segmental Rg
 rgNM_plot  = 0 # Plotting segmental Rg as a function of deg of poly
 hb_plot    = 0 # Plotting hydrogen bond data
-shape_plot = 1 # Plotting shape factor
+shape_plot = 0 # Plotting shape factor
 
 #--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
@@ -337,18 +337,18 @@ while shape_plot:
                         '_pdi_'+str(pdi_val)+'.dat','w')
             favg.write('%s\t%s\t%s\n' %('NMons','AvgKappa','Ncnts'))
             print('Plotting', pdi_val, tval)
-            monplot,msdplot,errplot,cntall = comp_bin_ave_sem(mondata,msddata)
-            plt.errorbar(x=monplot,y=100*msdplot,yerr=100*errplot,\
+            monplot,shapeplot,errplot,cntall = comp_bin_ave_sem(mondata,kapdata)
+            plt.errorbar(x=monplot,y=shapeplot,yerr=errplot,\
                          marker=mrk_arr[indx],label=pdileg,\
                          capsize=5,linestyle='None') #100 for nm to A
-            yminref, ymaxref = axlims(yminref,(msdplot-errplot).min(),\
-                                      ymaxref,(msdplot+errplot).max()) 
+            yminref, ymaxref = axlims(yminref,(shapeplot-errplot).min(),\
+                                      ymaxref,(shapeplot+errplot).max()) 
             indx += 1
 
         ax.legend(loc='upper right')
         ax.set_ylim([0.95*yminref, 1.2*ymaxref])
         fig.savefig(figout_dir + '/'+'kapdist_T_' + str(tval) +\
-                    'pdi.png',dpi=fig.dpi)
+                    '.png',dpi=fig.dpi)
         fig.savefig(figout_dir + '/'+'kapdist_T_' + str(tval) +\
                     '.eps',format='eps')
         plt.close(fig)

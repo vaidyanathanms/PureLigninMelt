@@ -131,9 +131,12 @@ def comp_bin_ave_sem(xdata,ydata):
     yavearr = np.empty(0); ysemarr = np.empty(0); cntarr = np.empty(0)
     for i in range(len(xoutarr)):
         yavearr = np.append(yavearr,np.mean(np.array(yallarr[i])))
-        ysemarr = np.append(ysemarr,sem(np.array(yallarr[i])))
         cntarr  = np.append(cntarr,np.size(np.array(yallarr[i])))
-            
+        if np.size(np.array(yallarr[i])) == 1: #if only one point is
+            #there to average, SEM will be nan
+            ysemarr = np.append(ysemarr,0)
+        else:
+            ysemarr = np.append(ysemarr,sem(np.array(yallarr[i])))
     return xoutarr, yavearr, ysemarr, cntarr
 #------------------------------------------------------------------ 
 
