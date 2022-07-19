@@ -19,12 +19,12 @@ temp_arr  = range(300,501,50) # for temperature specific plots
 
 #Input flags
 tg_plot    = 0 # Plotting Tg
-msd_plot   = 1 # Plotting MSD
+msd_plot   = 0 # Plotting MSD
 rg_plot    = 0 # Plotting average Rg
 bnu_plot   = 0 # Plotting segmental Rg
 rgNM_plot  = 0 # Plotting segmental Rg as a function of deg of poly
 hb_plot    = 0 # Plotting hydrogen bond data
-shape_plot = 0 # Plotting shape factor
+shape_plot = 1 # Plotting shape factor
 
 #--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
@@ -67,35 +67,36 @@ while tg_plot: # Stupid Python won't let me break if loops easily
     fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
     plt.close(fig)
     tg_plot = 0     
-'''    # Plot average Tg
-    fig2, ax2 = plt.subplots()
-    set_axes(ax2,plt,r'Temperature ($K$)',\
-             r'Specific Volume ($cm^{3}/g$)')
-    ymaxref = 0; yminref = 1000; indx=0
-    
-    for pdi_val in pdi_arr:
-        if pdi_val == 'expts':
-            pdileg = 'PDI: Experimental Distribution'
-        else:
-            pdileg = 'PDI: ' + str(pdi_val)
-        fplot = '/tgdata_'+str(pdi_val)+'.dat'
-        if not os.path.exists(anaout1_dir + '/' + fplot):
-            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
-            continue
-        
-        print('Plotting', pdi_val)
-        df=pd.read_table(anaout1_dir + '/' + fplot)
-        plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
-                    ,label=pdileg)
-        yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
-                                  ymaxref,df['SV_NPT'].max()) 
-        indx += 1
 
-    plt.legend(loc='upper right')
-    ax.set_ylim([0.95*yminref, 1.2*ymaxref])
-    fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
-    fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
-    plt.close(fig)'''
+    # # Plot average Tg
+    # fig2, ax2 = plt.subplots()
+    # set_axes(ax2,plt,r'Temperature ($K$)',\
+    #          r'Specific Volume ($cm^{3}/g$)')
+    # ymaxref = 0; yminref = 1000; indx=0
+    
+    # for pdi_val in pdi_arr:
+    #     if pdi_val == 'expts':
+    #         pdileg = 'PDI: Experimental Distribution'
+    #     else:
+    #         pdileg = 'PDI: ' + str(pdi_val)
+    #     fplot = '/tgdata_'+str(pdi_val)+'.dat'
+    #     if not os.path.exists(anaout1_dir + '/' + fplot):
+    #         print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
+    #         continue
+        
+    #     print('Plotting', pdi_val)
+    #     df=pd.read_table(anaout1_dir + '/' + fplot)
+    #     plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
+    #                 ,label=pdileg)
+    #     yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
+    #                               ymaxref,df['SV_NPT'].max()) 
+    #     indx += 1
+
+    # plt.legend(loc='upper right')
+    # ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+    # fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
+    # fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
+    # plt.close(fig)
     
 
 
@@ -134,7 +135,6 @@ while msd_plot:
             df=pd.read_table(anaout1_dir + '/' + fplot,skiprows=1)
             mondata = df['NMons']
             msddata = df['MSD']
-
             favg = open(anaout1_dir + '/msdavg_T_'+ str(tval) +\
                         '_pdi_'+str(pdi_val)+'.dat','w')
             favg.write('%s\t%s\t%s\t%s\n' %('NMons','AvgMSD',\
@@ -142,47 +142,15 @@ while msd_plot:
             
             print('Plotting', pdi_val, tval)
             monplot,msdplot,errplot,cntall = comp_bin_ave_sem(mondata,msddata)
-            plt.errorbar(x=monplot,y=msdplot,yerr=errplot,\
+            plt.errorbar(x=monplot,y=100*msdplot,yerr=100*errplot,\
                          marker=mrk_arr[indx],label=pdileg,\
-                         capsize=5,linestyle='None')
-#            yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
-#                                      ymaxref,(av_msdarr/av_cntarr).max()) 
+                         capsize=5,linestyle='None') #100 for nm to A
+            yminref, ymaxref = axlims(yminref,(msdplot-errplot).min(),\
+                                      ymaxref,(msdplot+errplot).max()) 
             indx += 1
-            
-            # av_monarr = []; av_msdarr = []; av_cntarr = [] #Method 2
-            # for monindx in range(len(mondata)):
-            #     monval = mondata[monindx]; msd = msddata[monindx]
-            #     if math.isnan(monval):
-            #         continue
-            #     elif monval in av_monarr:
-            #         av_msdarr[list(av_monarr).index(monval)] += msd
-            #         av_cntarr[list(av_monarr).index(monval)] += 1
-            #     else:
-            #         av_monarr = np.append(av_monarr,monval)
-            #         av_msdarr = np.append(av_msdarr,msd)
-            #         av_cntarr = np.append(av_cntarr,1)
 
-            # for avval in range(len(av_monarr)):
-            #     favg.write('%g\t%g\t%g\n' %(av_monarr[avval],\
-            #                                 av_msdarr[avval],\
-            #                                 av_cntarr[avval]))
-            # favg.close()
-
-            # if len(av_msdarr) != len(av_monarr) or \
-            #    len(av_msdarr) != len(av_cntarr):
-            #     print('FATAL ERR: Sizes not same for pdi/T: ',\
-            #           pdi_val, tval)
-            #     continue
-
-            #Plotting data
-            # print('Plotting', pdi_val, tval) #
-            # plt.scatter(av_monarr,100*av_msdarr/av_cntarr,\
-            #            marker=mrk_arr[indx],label=pdileg)
-            # yminref, ymaxref = axlims(yminref,(av_msdarr/av_cntarr).min(),\
-            #                           ymaxref,(av_msdarr/av_cntarr).max()) 
-            # indx += 1
-        
-        plt.legend(loc='upper right')
+        plt.legend(fontsize=10,loc='upper right')
+#        plt.legend(bbox_to_anchor=(0.45,0.65),fontsize=10)
         ax.set_ylim([95*yminref, 120*ymaxref])
         ax.set_yscale('log'); ax.set_xscale('log')
         fig.savefig(figout_dir + '/'+'MSDdist_T_'+str(tval)+ \
@@ -190,6 +158,7 @@ while msd_plot:
         fig.savefig(figout_dir + '/'+'MSDdist_T_'+str(tval)+ \
                     '.eps',format='eps')
         plt.close(fig)
+            
     msd_plot = 0
 #----------------------End MSD plots--------------------------------------
 
@@ -367,40 +336,14 @@ while shape_plot:
             favg = open(anaout1_dir + '/shapeavg_T_'+ str(tval) +\
                         '_pdi_'+str(pdi_val)+'.dat','w')
             favg.write('%s\t%s\t%s\n' %('NMons','AvgKappa','Ncnts'))
-
-            av_monarr = []; av_kaparr = []; av_cntarr = []
-            for monindx in range(len(mondata)):
-                monval = mondata[monindx]; kappa = kapdata[monindx]
-                if math.isnan(monval):
-                    continue
-                elif monval in av_monarr:
-                    av_kaparr[list(av_monarr).index(monval)] += kappa
-                    av_cntarr[list(av_monarr).index(monval)] += 1
-                else:
-                    av_monarr = np.append(av_monarr,monval)
-                    av_kaparr = np.append(av_kaparr,kappa)
-                    av_cntarr = np.append(av_cntarr,1)
-
-            for avval in range(len(av_monarr)):
-                favg.write('%g\t%g\t%g\n' %(av_monarr[avval],\
-                                            av_kaparr[avval],\
-                                            av_cntarr[avval]))
-
-            favg.close()
-            if len(av_kaparr) != len(av_monarr) or \
-               len(av_kaparr) != len(av_cntarr):
-                print('FATAL ERR: Sizes not same for pdi/T: ',\
-                      pdi_val, tval)
-                continue
-
-            #Plotting data
             print('Plotting', pdi_val, tval)
-            plt.scatter(av_monarr,av_kaparr/av_cntarr,\
-                        marker=mrk_arr[indx],label=pdileg)
-            yminref, ymaxref = axlims(yminref,(av_kaparr/av_cntarr).min(),\
-                                      ymaxref,(av_kaparr/av_cntarr).max()) 
+            monplot,msdplot,errplot,cntall = comp_bin_ave_sem(mondata,msddata)
+            plt.errorbar(x=monplot,y=100*msdplot,yerr=100*errplot,\
+                         marker=mrk_arr[indx],label=pdileg,\
+                         capsize=5,linestyle='None') #100 for nm to A
+            yminref, ymaxref = axlims(yminref,(msdplot-errplot).min(),\
+                                      ymaxref,(msdplot+errplot).max()) 
             indx += 1
-
 
         ax.legend(loc='upper right')
         ax.set_ylim([0.95*yminref, 1.2*ymaxref])
