@@ -83,6 +83,15 @@ def func_powerlaw(x,a,b):
     return a*x**b
 #------------------------------------------------------------------ 
 
+# Compute theoretical SZ distribution
+def comp_pdi_sz(pdi_val,sig,mwn):
+    pinv = (1.0)/(pdi_val-1.0) #defn = 1/(PDI-1)
+    term1 = pinv**pinv; term2 = sig**(pinv-1)
+    term3 = np.exp(-pinv*sig); term4 = math.gamma(pinv)
+    psz_theory = (term1*term2*term3)/term4
+    return psz_theory, np.trapz(psz_theory,sig*mwn)
+#------------------------------------------------------------------
+
 # Return averages over bins
 def compute_bin_averages(xdata,ydata):
 
