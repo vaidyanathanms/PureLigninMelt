@@ -18,7 +18,8 @@ pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
 temp_arr  = range(300,501,10) # for temperature specific plots
 
 #Input flags
-tg_plot    = 1 # Plotting Tg
+sz_plot    = 1 # Plotting SZ distn and compare with sim/expt
+tg_plot    = 0 # Plotting Tg
 msd_plot   = 0 # Plotting MSD
 rg_plot    = 0 # Plotting average Rg
 bnu_plot   = 0 # Plotting segmental Rg
@@ -26,6 +27,115 @@ rgNM_plot  = 0 # Plotting segmental Rg as a function of deg of poly
 hb_plot    = 0 # Plotting hydrogen bond data
 shape_plot = 0 # Plotting shape factor
 
+#--------Plot all figures for SZ-distn and comparisons------------
+while sz_plot: # Stupid Python won't let me break if loops easily
+
+    print("Plotting SZ data")
+    anaout1_dir = anaout_dir + '/pdi_results' # result_outputs
+    if not os.path.isdir(anaout1_dir):
+        print("ERROR: ", + anaout1_dir + " not found")
+        break
+
+    # Fig(a) - Theory comparison
+    print("Plotting Figure 1 of 3")
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'$N$',r'p($N$)')
+    mwn = 22; mol_mass = 200; # Data for WT-CEL
+    sig = np.arange(1,20*mwn,0.5,dtype=float); sig/=mwn
+    ymaxref = 0; yminref = 1000; indx=0
+    for pdi_val in [1.5,1.8,3.0]:        
+        pdileg = 'PDI: ' + str(pdi_val)
+        psz_theory,intps = comp_pdi_sz(pdi_val,sig,mwn)
+        plt.plot(sig*mwn,psz_theory/(intps),linewidth=2,\
+                 linestyle='--',marker='None',label=pdileg)
+        indx+=1
+        yminref, ymaxref = axlims(yminref,min(psz_theory),\
+                                  ymaxref,max(psz_theory))
+              
+    ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+    ax.legend(loc='upper right')
+    fig.savefig(figout_dir + '/'+'psz_theory_a.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'psz_theory_a.eps',format='eps')
+    plt.close(fig)
+
+    # Fig(b) - Theory - Simulation Comparison
+    print("Plotting Figure 2 of 3")
+    ymaxref = 0; yminref = 1000; indx=0
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'$N$',r'p($N$)')
+    bclr = ['gold','cyan']
+    for pdi_val in [1.8,3.7]:
+        if pdi_val == 'expts':
+            pdileg = 'PDI: Experimental Distribution'
+        else:
+            pdileg = 'PDI: ' + str(pdi_val)
+        fplot = '/Nall_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
+            continue
+        
+        print('Plotting', pdi_val)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
+        plt.hist(df['NMons'],bins=12,density=True,\
+                 label = 'Simulation ' + pdileg,color=bclr[indx])
+        psz_theory,intps = comp_pdi_sz(pdi_val,sig,mwn)
+        plt.plot(sig*mwn,psz_theory/(intps),linewidth=2,color=clr_arr[indx],\
+                 linestyle='--',marker='None',label='Theory, '+pdileg)
+        indx+=1
+        
+    plt.legend(loc='upper right')
+    fig.savefig(figout_dir + '/'+'sztheory_sim_comp.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'sztheory_sim_comp.eps',format='eps')
+    plt.close(fig)
+
+    # Fig(c) - Theory - Experiment - Simulation Comparison
+    print("Plotting Figure 3 of 3")
+    ymaxref = 0; yminref = 1000; indx=0
+    fig, ax = plt.subplots()
+    set_axes(ax,plt,r'$N$',r'p($N$)')
+    bclr = ['gold','cyan']
+    for pdi_val in [3.7,'expts']:
+        if pdi_val == 'expts':
+            pdileg = 'Experimental Distribution'
+        else:
+            pdileg = 'Theoretical Distribution'
+        fplot = '/Nall_'+str(pdi_val)+'.dat'
+        if not os.path.exists(anaout1_dir + '/' + fplot):
+            print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
+            continue
+        
+        print('Plotting', pdi_val)
+        df=pd.read_table(anaout1_dir + '/' + fplot)
+        plt.hist(df['NMons'],bins=12,density=True,\
+                 label = 'Simulated Data: ' + pdileg,color=bclr[indx])
+        
+        if pdi_val == 3.7: #Use theoretical distribution
+            psz_theory,intps = comp_pdi_sz(pdi_val,sig,mwn)
+            plt.plot(sig*mwn,psz_theory/(intps),linewidth=2,\
+                     color=clr_arr[indx],linestyle='--',marker='None',\
+                     label=pdileg)
+        else: # Use experimental data
+            fexp_dat = anaout_dir + '/expt_data/WTdata.dat' #Expt data
+            if not os.path.exists(anaout1_dir + '/' + fplot):
+                print('ERR: '+fexp_dat +' not found in ' +\
+                      anaout_dir+ '/expt_data') 
+                continue
+            df = pd.read_table(fexp_dat)
+            exp_y = df['wlogmw']; exp_x = df['molwt']
+            pofm = np.multiply(np.power(exp_x,-2),exp_y)
+            intmpm = np.trapz(pofm,exp_x)
+            plt.plot(exp_x/mol_mass,mol_mass*pofm/intmpm,linewidth=2,\
+                     color=clr_arr[indx],linestyle='--',marker='None',\
+                     label=pdileg)
+        indx+=1            
+    plt.legend(loc='upper right')
+    ax.set_xlim([0.5, 20*mwn])
+    ax.set_xscale('log')    
+    fig.savefig(figout_dir + '/'+'theory_exp_sim_comp.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'theory_exp_sim_comp.eps',format='eps')
+    plt.close(fig)
+    
+    sz_plot = 0     
 #--------Plot SV-Temp data for all PDI values together ------------
 while tg_plot: # Stupid Python won't let me break if loops easily
     
@@ -61,45 +171,11 @@ while tg_plot: # Stupid Python won't let me break if loops easily
         indx += 1
 
     plt.legend(loc='upper left')
-#    print(ymaxref)
     ax.set_ylim([0.98*yminref, 1.05*ymaxref])
     fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
     fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
     plt.close(fig)
     tg_plot = 0     
-
-    # # Plot average Tg
-    # fig2, ax2 = plt.subplots()
-    # set_axes(ax2,plt,r'Temperature ($K$)',\
-    #          r'Specific Volume ($cm^{3}/g$)')
-    # ymaxref = 0; yminref = 1000; indx=0
-    
-    # for pdi_val in pdi_arr:
-    #     if pdi_val == 'expts':
-    #         pdileg = 'PDI: Experimental Distribution'
-    #     else:
-    #         pdileg = 'PDI: ' + str(pdi_val)
-    #     fplot = '/tgdata_'+str(pdi_val)+'.dat'
-    #     if not os.path.exists(anaout1_dir + '/' + fplot):
-    #         print('ERR: '+fplot+' does not exist in ' + anaout1_dir)
-    #         continue
-        
-    #     print('Plotting', pdi_val)
-    #     df=pd.read_table(anaout1_dir + '/' + fplot)
-    #     plt.scatter(x=df['Temp'],y=df['SV_NPT'],marker=mrk_arr[indx]\
-    #                 ,label=pdileg)
-    #     yminref, ymaxref = axlims(yminref,df['SV_NPT'].min(),\
-    #                               ymaxref,df['SV_NPT'].max()) 
-    #     indx += 1
-
-    # plt.legend(loc='upper right')
-    # ax.set_ylim([0.95*yminref, 1.2*ymaxref])
-    # fig.savefig(figout_dir + '/'+'svt_allpdi.png',dpi=fig.dpi)
-    # fig.savefig(figout_dir + '/'+'svt_allpdi.eps',format='eps')
-    # plt.close(fig)
-    
-
-
 #--- End plotting Tg data -----------------------------------------
 
 #--------Plot MSD data for all PDI together------------------------
