@@ -18,7 +18,7 @@ pdi_arr   = [1.0,1.8,3.0,3.7,'expts']
 temp_arr  = range(300,501,10) # for temperature specific plots
 
 #Input flags
-sz_plot    = 1 # Plotting SZ distn and compare with sim/expt
+sz_plot    = 0 # Plotting SZ distn and compare with sim/expt
 tg_plot    = 0 # Plotting Tg
 msd_plot   = 0 # Plotting MSD
 rg_plot    = 0 # Plotting average Rg
@@ -49,13 +49,15 @@ while sz_plot: # Stupid Python won't let me break if loops easily
         plt.plot(sig*mwn,psz_theory/(intps),linewidth=2,\
                  linestyle='--',marker='None',label=pdileg)
         indx+=1
-        yminref, ymaxref = axlims(yminref,min(psz_theory),\
-                                  ymaxref,max(psz_theory))
+        yminref, ymaxref = axlims(yminref,min(psz_theory/intps),\
+                                  ymaxref,max(psz_theory/intps))
               
     ax.set_ylim([0.95*yminref, 1.2*ymaxref])
+    ax.set_xscale('log')    
     ax.legend(loc='upper right')
-    fig.savefig(figout_dir + '/'+'psz_theory_a.png',dpi=fig.dpi)
-    fig.savefig(figout_dir + '/'+'psz_theory_a.eps',format='eps')
+    plt.text(0.05, 0.95, '(a)', fontsize=16, transform=plt.gcf().transFigure)
+    fig.savefig(figout_dir + '/'+'Fig_psz_theory_a.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'Fig_psz_theory_a.eps',format='eps')
     plt.close(fig)
 
     # Fig(b) - Theory - Simulation Comparison
@@ -84,8 +86,10 @@ while sz_plot: # Stupid Python won't let me break if loops easily
         indx+=1
         
     plt.legend(loc='upper right')
-    fig.savefig(figout_dir + '/'+'sztheory_sim_comp.png',dpi=fig.dpi)
-    fig.savefig(figout_dir + '/'+'sztheory_sim_comp.eps',format='eps')
+    ax.set_xscale('log')    
+    plt.text(0.05, 0.95, '(b)', fontsize=16, transform=plt.gcf().transFigure)
+    fig.savefig(figout_dir + '/'+'Fig_sztheory_sim_comp.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'Fig_sztheory_sim_comp.eps',format='eps')
     plt.close(fig)
 
     # Fig(c) - Theory - Experiment - Simulation Comparison
@@ -130,9 +134,10 @@ while sz_plot: # Stupid Python won't let me break if loops easily
         indx+=1            
     plt.legend(loc='upper right')
     ax.set_xlim([0.5, 20*mwn])
-    ax.set_xscale('log')    
-    fig.savefig(figout_dir + '/'+'theory_exp_sim_comp.png',dpi=fig.dpi)
-    fig.savefig(figout_dir + '/'+'theory_exp_sim_comp.eps',format='eps')
+    ax.set_xscale('log')
+    plt.text(0.05, 0.95, '(c)', fontsize=16, transform=plt.gcf().transFigure)
+    fig.savefig(figout_dir + '/'+'Fig_theory_exp_sim_comp.png',dpi=fig.dpi)
+    fig.savefig(figout_dir + '/'+'Fig_theory_exp_sim_comp.eps',format='eps')
     plt.close(fig)
     
     sz_plot = 0     
