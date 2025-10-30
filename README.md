@@ -2,7 +2,7 @@
 To generate polydisperse lignin melt systems and compute lignin melt properties.
 
 Author: Vaidyanathan Sethuraman
-Email: v0e@ornl.gov
+Email: vm5@ornl.gov
 
 Requirements: Python3.0+, VMD 1.9.4+, FORTRAN90, NAMD, GROMACS
 
